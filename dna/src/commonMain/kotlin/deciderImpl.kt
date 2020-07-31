@@ -1,14 +1,14 @@
 package com.github.trilobiitti.trilobite.dna
 
-private class NullDecisionVariable<TIn : DeciderInputBase> : DecisionVariable<TIn, Unit> {
-    override fun getFrom(context: DecisionContext<TIn>): Unit = Unit
+object NullDecisionVariable: DecisionVariable<DeciderInputBase, Unit> {
+    override fun getFrom(context: DecisionContext<DeciderInputBase>) = Unit
 }
 
-private class DecisionTreeNode<TIn : DeciderInputBase, TVar : DeciderVariableValueBase, TItem : DeciderItemBase, TOut>(
-        val variable: DecisionVariable<TIn, TVar>,
+private class DecisionTreeNode<TIn : DeciderInputBase, TItem : DeciderItemBase, TOut>(
+        val variable: DecisionVariable<TIn, DeciderVariableValueBase>,
         val items: Iterable<TItem>,
-        val children: Map<TVar, DecisionTreeNode<TIn, *, TItem, TOut>>?,
-        val defaultChild: DecisionTreeNode<TIn, *, TItem, TOut>?,
+        val children: Map<DeciderVariableValueBase, DecisionTreeNode<TIn, TItem, TOut>>?,
+        val defaultChild: DecisionTreeNode<TIn, TItem, TOut>?,
         val outputFactory: (Set<TItem>) -> TOut
 ) {
     init {
@@ -16,7 +16,7 @@ private class DecisionTreeNode<TIn : DeciderInputBase, TVar : DeciderVariableVal
         defaultChild?.parent = this
     }
 
-    var parent: DecisionTreeNode<TIn, *, TItem, TOut>? = null
+    var parent: DecisionTreeNode<TIn, TItem, TOut>? = null
     val output: TOut by lazy {
         outputFactory(mutableSetOf<TItem>().also { addItemsTo(it) })
     }
@@ -29,9 +29,22 @@ private class DecisionTreeNode<TIn : DeciderInputBase, TVar : DeciderVariableVal
         parent?.addItemsTo(set)
     }
 
+    fun print(dst: Appendable, offset: String) {
+        dst.append("$offset* by $variable\n")
+        items.forEach { dst.append("$offset- $it\n") }
+        children?.forEach { (k, v) ->
+            dst.append("$offset+ when $k\n")
+            v.print(dst, "$offset\t")
+        }
+        defaultChild?.let {
+            dst.append("$offset+ else\n")
+            it.print(dst, "$offset\t")
+        }
+    }
+
     companion object {
-        tailrec fun <TIn : DeciderInputBase, TVar : DeciderVariableValueBase, TItem : DeciderItemBase, TOut> process(
-                node: DecisionTreeNode<TIn, TVar, TItem, TOut>,
+        tailrec fun <TIn : DeciderInputBase, TItem : DeciderItemBase, TOut> process(
+                node: DecisionTreeNode<TIn, TItem, TOut>,
                 context: DecisionContext<TIn>
         ): TOut {
             val value = context[node.variable]
@@ -58,15 +71,32 @@ private class DefaultDecisionContext<TIn : DeciderInputBase>(
 }
 
 private class TreeDecider<TIn : DeciderInputBase, TItem : DeciderItemBase, TOut>(
-        private val root: DecisionTreeNode<TIn, *, TItem, TOut>
+        private val root: DecisionTreeNode<TIn, TItem, TOut>
 ) : Decider<TIn, TOut> {
     override fun invoke(input: TIn): TOut {
         val context = DefaultDecisionContext(input)
         return DecisionTreeNode.process(root, context)
     }
+
+    override fun toString(): String = StringBuilder()
+            .append("${super.toString()}\n")
+            .also { root.print(it, "") }.toString()
 }
 
 private val DEFAULT_SENTINEL = object {}
+
+private class AssumedDecisionContext<TIn : DeciderInputBase>(
+        val targetVariable: DecisionVariable<TIn, *>,
+        val assumptions: Map<DecisionVariable<TIn, *>, DeciderVariableValueBase>
+) : DecisionContext<TIn> {
+    override val input: TIn
+        get() = throw IllegalStateException("Unexpected input dependency for variable $targetVariable")
+
+    override fun <TVar : DeciderVariableValueBase> get(variable: DecisionVariable<TIn, TVar>): TVar =
+            (assumptions[variable]
+                    ?: throw IllegalStateException("Unexpected dependency on $variable for $targetVariable"))
+                    as TVar
+}
 
 class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : DeciderBuilder<TIn, TItem> {
     private class Rule<TIn : DeciderItemBase, TItem : DeciderItemBase>(
@@ -109,27 +139,60 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
     }
 
     private fun <TOut> buildTree(
-            rules: Iterable<Rule<TIn, TItem>>,
-            outFactory: (Set<TItem>) -> TOut
-    ): DecisionTreeNode<TIn, *, TItem, TOut> {
-        val splitVar = pickSplitVariable(rules)
+            rules_: Iterable<Rule<TIn, TItem>>,
+            outFactory: (Set<TItem>) -> TOut,
+            assumptions: Map<DecisionVariable<TIn, DeciderVariableValueBase>, DeciderVariableValueBase>
+    ): DecisionTreeNode<TIn, TItem, TOut> {
+        var rules: Iterable<Rule<TIn, TItem>> = rules_
+        var splitVar: DecisionVariable<TIn, DeciderVariableValueBase>?
+        var grouped: MutableMap<DeciderVariableValueBase, MutableList<Rule<TIn, TItem>>> = mutableMapOf()
 
-        if (splitVar === null) {
-            // If there are no more variables to choose from then remaining rules have no more additional conditions
-            // and the new node will become a leaf
-            return DecisionTreeNode(
-                    NullDecisionVariable(),
-                    rules.map { it.item },
-                    null,
-                    null,
-                    outFactory
-            )
+        while (true) {
+            splitVar = pickSplitVariable(rules)
+
+            if (splitVar === null) {
+                // If there are no more variables to choose from then remaining rules have no more additional conditions
+                // and the new node will become a leaf
+                return DecisionTreeNode(
+                        NullDecisionVariable,
+                        rules.map { it.item },
+                        null,
+                        null,
+                        outFactory
+                )
+            }
+
+            // Group the rules to a mutable map where key is value of split variable expected by the rule or
+            // DEFAULT_SENTINEL (which marks a group of rules that do not involve the variable)
+            rules.groupByTo(grouped) { it.conditions[splitVar] ?: DEFAULT_SENTINEL }
+
+            // If `splitVar` is normal variable then we must use it as is
+            if (!splitVar.isMetaVariable()) break
+
+            val dependencies = splitVar.getDependencies()
+
+            // If `splitVar` is a meta variable without dependencies (probably depending on some conditions
+            // not related to input) then we should handle it as a normal variable.
+            if (dependencies.isEmpty()) break
+
+            // If `splitVar` is meta variable but values of some it's dependencies are unknown then we also have
+            // to use it as is
+            if (!assumptions.keys.containsAll(dependencies)) break
+
+            // ...but otherwise we know the exact value of the variable at this moment
+            val knownValue = splitVar.getFrom(AssumedDecisionContext(splitVar, assumptions))
+
+            // ...so we can leave only the rules that expect exactly that value and the rules that don't use
+            // the variable. Others will not match anyway.
+            val remainingRules = mutableListOf<Rule<TIn, TItem>>()
+            grouped[knownValue]?.apply { forEach { it.conditions.remove(splitVar) } }?.let { remainingRules.addAll(it) }
+            grouped[DEFAULT_SENTINEL]?.let { remainingRules.addAll(it) }
+
+            rules = remainingRules
+            grouped = mutableMapOf()
         }
 
-        // Group the rules to a mutable map where key is value of split variable expected by the rule or
-        // DEFAULT_SENTINEL (which marks a group of rules that do not involve the variable)
-        val grouped: MutableMap<DeciderVariableValueBase, MutableList<Rule<TIn, TItem>>> = mutableMapOf()
-        rules.groupByTo(grouped) { it.conditions[splitVar] ?: DEFAULT_SENTINEL }
+        splitVar!!
 
         // Get set of rules that do not involve the chosen split variable and remove list of them from the map,
         // so map keys now imclude possible values of the split variable only
@@ -141,7 +204,7 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
         grouped.values.forEach { rulesGroup -> rulesGroup.forEach { rule -> rule.conditions.remove(splitVar) } }
 
         var nodeItems: Iterable<TItem> = emptyList()
-        var defaultChild: DecisionTreeNode<TIn, *, TItem, TOut>? = null
+        var defaultChild: DecisionTreeNode<TIn, TItem, TOut>? = null
 
         if (defaultRules !== null) {
             // Add rules that do not involve the chosen variable but still have some conditions to all children nodes
@@ -153,15 +216,19 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
             // Fill list of items assigned to this node unconditionally
             nodeItems = defaultRules.filter { it.conditions.isEmpty() }.map { it.item }
 
-            // Build default child for new node
-            defaultChild = buildTree(defaultRules, outFactory)
+            // Build default child for new node if necessary
+            if (nonEmptyRules.isNotEmpty()) {
+                defaultChild = buildTree(nonEmptyRules, outFactory, assumptions)
+            }
         }
 
         // Build child nodes
-        val children = grouped.mapValues { (_, it) -> buildTree(it, outFactory) }
+        val children = grouped.mapValues { (value, it) ->
+            buildTree(it, outFactory, assumptions + mapOf(splitVar to value))
+        }
 
         // Finally, create the node
-        return DecisionTreeNode(
+        return DecisionTreeNode<TIn, TItem, TOut>(
                 splitVar,
                 nodeItems,
                 children,
@@ -175,7 +242,8 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
                     buildTree(
                             // Copy rules list so this builder can be reused later with (or without) new rules added
                             rules.map { it.copy() },
-                            outFactory
+                            outFactory,
+                            mapOf()
                     )
             )
 }

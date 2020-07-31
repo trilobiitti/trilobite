@@ -9,6 +9,9 @@ class TreeDeciderTest {
 
     fun concatSet(items: Set<String>): String = items.toList().sorted().joinToString(", ")
 
+    fun isNotLowercase(s: String): Boolean = s != s.toLowerCase()
+    fun isNotUppercase(s: String): Boolean = s != s.toUpperCase()
+
     fun build(block: DeciderBuilder<Map<String, String>, String>.() -> Unit): Decider<Map<String, String>, String> =
         DefaultDeciderBuilder<Map<String, String>, String>().also(block).build(this::concatSet)
 
@@ -38,10 +41,10 @@ class TreeDeciderTest {
     fun `should handle predicate variables`() {
         val d = build {
             add("a is not lowercase") {
-                expect(MapKeyVariable("a")) { s -> s.toLowerCase() != s }
+                expect(MapKeyVariable("a"), false, ::isNotLowercase)
             }
             add("a is not uppercase") {
-                expect(MapKeyVariable("a")) { s -> s.toUpperCase() != s }
+                expect(MapKeyVariable("a"), false, ::isNotUppercase)
             }
             add("a is UP") {
                 expect(MapKeyVariable("a"), "UP")
@@ -51,5 +54,7 @@ class TreeDeciderTest {
         assertEquals("a is UP, a is not lowercase", d(mapOf("a" to "UP")))
         assertEquals("a is not uppercase", d(mapOf("a" to "lo")))
         assertEquals("a is not lowercase, a is not uppercase", d(mapOf("a" to "lU")))
+
+        println(d)
     }
 }

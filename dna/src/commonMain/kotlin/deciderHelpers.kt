@@ -50,5 +50,7 @@ data class PredicateVariable<TIn: DeciderInputBase, TVar: DeciderVariableValueBa
 ): DecisionVariable<TIn, Boolean> {
     override fun getFrom(context: DecisionContext<TIn>): Boolean = predicate(context[variable])
 
-    override fun getDependencies(): Iterable<DecisionVariable<TIn, *>> = listOf(variable)
+    override fun getDependencies(): List<DecisionVariable<TIn, *>> = listOf(variable)
+
+    override fun isMetaVariable(): Boolean = true
 }

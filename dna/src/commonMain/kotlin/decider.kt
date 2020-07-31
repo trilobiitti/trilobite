@@ -4,13 +4,18 @@ typealias DeciderInputBase = Any
 typealias DeciderVariableValueBase = Any
 typealias DeciderItemBase = Any
 
-interface DecisionVariable<TIn: DeciderInputBase, out TVar: DeciderVariableValueBase> {
+interface DecisionVariable<in TIn: DeciderInputBase, out TVar: DeciderVariableValueBase> {
     fun getFrom(context: DecisionContext<TIn>): TVar
 
-    fun getDependencies(): Iterable<DecisionVariable<TIn, *>> = emptyList()
+    fun getDependencies(): List<DecisionVariable<TIn, *>> = emptyList()
+
+    /**
+     * Must return `true` iff this variable doesn't interact with [DecisionContext.input] directly.
+     */
+    fun isMetaVariable(): Boolean = false
 }
 
-interface DecisionContext<TIn: DeciderInputBase> {
+interface DecisionContext<out TIn: DeciderInputBase> {
     val input: TIn
 
     operator fun <TVar: DeciderVariableValueBase> get(variable: DecisionVariable<TIn, TVar>): TVar
