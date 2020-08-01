@@ -1,19 +1,23 @@
 package com.github.trilobiitti.trilobite.dna
 
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFails
 
 class TreeDeciderTest {
     private data class MapKeyVariable(val key: String): DecisionVariable<Map<String, String>, String> {
         override fun getFrom(context: DecisionContext<Map<String, String>>): String = context.input[key] ?: ""
     }
 
-    private fun concatSet(items: Set<String>): String = items.toList().sorted().joinToString(", ")
+    private fun concatStrings(items: Iterable<String>): String = items.toList().sorted().joinToString(", ")
 
     private fun isNotLowercase(s: String): Boolean = s != s.toLowerCase()
     private fun isNotUppercase(s: String): Boolean = s != s.toUpperCase()
 
     private fun build(block: DeciderBuilder<Map<String, String>, String>.() -> Unit): Decider<Map<String, String>, String> =
-        DefaultDeciderBuilder<Map<String, String>, String>().also(block).build(this::concatSet)
+            DefaultDeciderBuilder<Map<String, String>, String>()
+                    .also(block)
+                    .build(ContextIndependentImmutableDecisionFactory(::concatStrings))
 
     @Test
     fun `should handle simple conditions`() {

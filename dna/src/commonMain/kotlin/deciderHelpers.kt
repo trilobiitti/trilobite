@@ -44,13 +44,30 @@ fun <TIn : DeciderInputBase, TItem : DeciderItemBase>
 // Commonly useful classes
 //
 
-data class PredicateVariable<TIn: DeciderInputBase, TVar: DeciderVariableValueBase>(
+data class PredicateVariable<TIn : DeciderInputBase, TVar : DeciderVariableValueBase>(
         val variable: DecisionVariable<TIn, TVar>,
         val predicate: (TVar) -> Boolean
-): DecisionVariable<TIn, Boolean> {
+) : DecisionVariable<TIn, Boolean> {
     override fun getFrom(context: DecisionContext<TIn>): Boolean = predicate(context[variable])
 
     override fun getDependencies(): List<DecisionVariable<TIn, *>> = listOf(variable)
 
     override fun isMetaVariable(): Boolean = true
+}
+
+class ContextIndependentImmutableDecisionFactory<TIn : DeciderInputBase, TItem : DeciderItemBase, TOut>(
+        private val transform: (items: Iterable<TItem>) -> TOut
+) : DecisionFactory<TIn, TItem, TOut, TOut> {
+    override fun initDecisionInvariant(items: Iterable<TItem>): TOut = transform(items)
+
+    override fun generateOutput(decisionInvariant: TOut, context: DecisionContext<TIn>): TOut = decisionInvariant
+}
+
+class FullyContextDependentDecisionFactory<TIn : DeciderInputBase, TItem : DeciderItemBase, TOut>(
+        private val create: (items: Iterable<TItem>, context: DecisionContext<TIn>) -> TOut
+) : DecisionFactory<TIn, TItem, Iterable<TItem>, TOut> {
+    override fun initDecisionInvariant(items: Iterable<TItem>): Iterable<TItem> = items
+
+    override fun generateOutput(decisionInvariant: Iterable<TItem>, context: DecisionContext<TIn>): TOut =
+            create(decisionInvariant, context)
 }

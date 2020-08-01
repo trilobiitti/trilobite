@@ -4,29 +4,31 @@ object NullDecisionVariable : DecisionVariable<DeciderInputBase, Unit> {
     override fun getFrom(context: DecisionContext<DeciderInputBase>) = Unit
 }
 
-private class DecisionTreeNode<TIn : DeciderInputBase, TItem : DeciderItemBase, TOut>(
+private class DecisionTreeNode<TIn : DeciderInputBase, TItem : DeciderItemBase, TInv, TOut>(
         val variable: DecisionVariable<TIn, DeciderVariableValueBase>,
         val items: Iterable<TItem>,
-        val children: Map<DeciderVariableValueBase, DecisionTreeNode<TIn, TItem, TOut>>?,
-        val defaultChild: DecisionTreeNode<TIn, TItem, TOut>?,
-        val outputFactory: (Set<TItem>) -> TOut
+        val children: Map<DeciderVariableValueBase, DecisionTreeNode<TIn, TItem, *, TOut>>?,
+        val defaultChild: DecisionTreeNode<TIn, TItem, *, TOut>?,
+        val outputFactory: DecisionFactory<TIn, TItem, TInv, TOut>
 ) {
     init {
         children?.forEach { (_, it) -> it.parent = this }
         defaultChild?.parent = this
     }
 
-    var parent: DecisionTreeNode<TIn, TItem, TOut>? = null
-    val output: TOut by lazy {
-        outputFactory(mutableSetOf<TItem>().also { addItemsTo(it) })
+    var parent: DecisionTreeNode<TIn, TItem, *, TOut>? = null
+    val decisionInvariant: TInv by lazy {
+        outputFactory.initDecisionInvariant(
+                mutableListOf<TItem>().also { addItemsTo(it) }
+        )
     }
 
     /**
      * Add items attached to this node and it's parents to given set.
      */
-    fun addItemsTo(set: MutableSet<TItem>) {
-        set.addAll(items)
-        parent?.addItemsTo(set)
+    fun addItemsTo(collection: MutableCollection<TItem>) {
+        collection.addAll(items)
+        parent?.addItemsTo(collection)
     }
 
     fun print(dst: Appendable, offset: String) {
@@ -43,8 +45,8 @@ private class DecisionTreeNode<TIn : DeciderInputBase, TItem : DeciderItemBase, 
     }
 
     companion object {
-        tailrec fun <TIn : DeciderInputBase, TItem : DeciderItemBase, TOut> process(
-                node: DecisionTreeNode<TIn, TItem, TOut>,
+        tailrec fun <TIn : DeciderInputBase, TItem : DeciderItemBase, TInv, TOut> process(
+                node: DecisionTreeNode<TIn, TItem, TInv, TOut>,
                 context: DecisionContext<TIn>
         ): TOut {
             val value = context[node.variable]
@@ -55,7 +57,7 @@ private class DecisionTreeNode<TIn : DeciderInputBase, TItem : DeciderItemBase, 
                 return process(chosenChild, context)
             }
 
-            return node.output
+            return node.outputFactory.generateOutput(node.decisionInvariant, context)
         }
     }
 }
@@ -70,8 +72,8 @@ private class DefaultDecisionContext<TIn : DeciderInputBase>(
             resolved.getOrPut(variable) { variable.getFrom(this) } as TVar
 }
 
-private class TreeDecider<TIn : DeciderInputBase, TItem : DeciderItemBase, TOut>(
-        private val root: DecisionTreeNode<TIn, TItem, TOut>
+private class TreeDecider<TIn : DeciderInputBase, TItem : DeciderItemBase, TInv, TOut>(
+        private val root: DecisionTreeNode<TIn, TItem, TInv, TOut>
 ) : Decider<TIn, TOut> {
     override fun invoke(input: TIn): TOut {
         val context = DefaultDecisionContext(input)
@@ -162,11 +164,11 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
         return counts.entries.maxBy { it.value }?.key
     }
 
-    private fun <TOut> buildTree(
+    private fun <TOut, TInv> buildTree(
             rules_: Iterable<Rule<TIn, TItem>>,
-            outFactory: (Set<TItem>) -> TOut,
+            outFactory: DecisionFactory<TIn, TItem, TInv, TOut>,
             assumptions: Map<DecisionVariable<TIn, DeciderVariableValueBase>, DeciderVariableValueBase>
-    ): DecisionTreeNode<TIn, TItem, TOut> {
+    ): DecisionTreeNode<TIn, TItem, TInv, TOut> {
         var rules: Iterable<Rule<TIn, TItem>> = rules_
         var splitVar: DecisionVariable<TIn, DeciderVariableValueBase>?
         var grouped: MutableMap<DeciderVariableValueBase, MutableList<Rule<TIn, TItem>>> = mutableMapOf()
@@ -228,7 +230,7 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
         grouped.values.forEach { rulesGroup -> rulesGroup.forEach { rule -> rule.conditions.remove(splitVar) } }
 
         var nodeItems: Iterable<TItem> = emptyList()
-        var defaultChild: DecisionTreeNode<TIn, TItem, TOut>? = null
+        var defaultChild: DecisionTreeNode<TIn, TItem, TInv, TOut>? = null
 
         if (defaultRules !== null) {
             // Add rules that do not involve the chosen variable but still have some conditions to all children nodes
@@ -261,12 +263,12 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
         )
     }
 
-    override fun <TOut> build(outFactory: (Set<TItem>) -> TOut): Decider<TIn, TOut> =
+    override fun <TInv, TOut> build(decisionFactory: DecisionFactory<TIn, TItem, TInv, TOut>): Decider<TIn, TOut> =
             TreeDecider(
                     buildTree(
                             // Copy rules list so this builder can be reused later with (or without) new rules added
                             rules.map { it.copy() },
-                            outFactory,
+                            decisionFactory,
                             mapOf()
                     )
             )

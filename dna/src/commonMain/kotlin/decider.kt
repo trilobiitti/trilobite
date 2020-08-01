@@ -87,6 +87,42 @@ class DecisionCondition<TIn : DeciderInputBase, TVar : DeciderVariableValueBase>
 )
 
 /**
+ * Interface for object that converts collection of items chosen by [Decider] to decider's output.
+ *
+ * For sake of possible optimisations the conversion is performed in two steps:
+ *
+ * 1. A "decision invariant" (value of type [TInv]) is computed from collection of chosen items. This value
+ *      can be reused later for other decider invocations resulting in the same set of items (but can be computed
+ *      again, depending on decider implementation details).
+ * 2. An actual output is generated based on the decision invariant and decision context.
+ *
+ * Any heavy computation depending on set of chosen items, but not depending on decision context can be moved to
+ * first step, and thus potentially can be performed not that frequently.
+ *
+ * TODO: This interface doesn't look like a factory
+ *
+ * @param TIn decider input type
+ * @param TInv decision invariant type
+ * @param TItem item type
+ * @param TOut decider output type
+ */
+interface DecisionFactory<TIn : DeciderInputBase, TItem : DeciderItemBase, TInv, TOut> {
+    /**
+     * Computes decision invariant.
+     *
+     * @see DecisionFactory
+     */
+    fun initDecisionInvariant(items: Iterable<TItem>): TInv
+
+    /**
+     * Generates decider output.
+     *
+     * @see DecisionFactory
+     */
+    fun generateOutput(decisionInvariant: TInv, context: DecisionContext<TIn>): TOut
+}
+
+/**
  * Builder for [Decider].
  *
  * The builder is not expected to be thread-safe.
@@ -106,14 +142,8 @@ interface DeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> {
 
     /**
      * Creates a [Decider] instance based on previously provided (by calls of [addRule]) rules.
-     *
-     * The created decider will use [outFactory] to create outputs (of type [TOut]) from sets of items (of type
-     * [TItem]). [DeciderBuilder]/[Decider] implementation may call [outFactory] either immediately on [build] call
-     * (for all possible decisions) or lazily (on decider invocations). So [outFactory] must be thread-safe if the
-     * resulting [Decider] will be used concurrently and [DeciderBuilder] is not chosen/configured the way that
-     * [outFactory] is invoked immediately.
      */
-    fun <TOut> build(outFactory: (Set<TItem>) -> TOut): Decider<TIn, TOut>
+    fun <TInv, TOut> build(decisionFactory: DecisionFactory<TIn, TItem, TInv, TOut>): Decider<TIn, TOut>
 }
 
 /**
