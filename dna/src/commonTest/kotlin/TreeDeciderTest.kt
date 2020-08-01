@@ -7,12 +7,12 @@ class TreeDeciderTest {
         override fun getFrom(context: DecisionContext<Map<String, String>>): String = context.input[key] ?: ""
     }
 
-    fun concatSet(items: Set<String>): String = items.toList().sorted().joinToString(", ")
+    private fun concatSet(items: Set<String>): String = items.toList().sorted().joinToString(", ")
 
-    fun isNotLowercase(s: String): Boolean = s != s.toLowerCase()
-    fun isNotUppercase(s: String): Boolean = s != s.toUpperCase()
+    private fun isNotLowercase(s: String): Boolean = s != s.toLowerCase()
+    private fun isNotUppercase(s: String): Boolean = s != s.toUpperCase()
 
-    fun build(block: DeciderBuilder<Map<String, String>, String>.() -> Unit): Decider<Map<String, String>, String> =
+    private fun build(block: DeciderBuilder<Map<String, String>, String>.() -> Unit): Decider<Map<String, String>, String> =
         DefaultDeciderBuilder<Map<String, String>, String>().also(block).build(this::concatSet)
 
     @Test
@@ -56,5 +56,27 @@ class TreeDeciderTest {
         assertEquals("a is not lowercase, a is not uppercase", d(mapOf("a" to "lU")))
 
         println(d)
+    }
+
+    @Test
+    fun `should throw when contradicting conditions are provided`() {
+        assertFails {
+            build {
+                add("a is not lowercase and a is not not lowercase") {
+                    expect(MapKeyVariable("a"), false, ::isNotLowercase)
+                    expect(MapKeyVariable("a"), true, ::isNotLowercase)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `should not fail when there are duplicate conditions`() {
+        build {
+            add("a is not lowercase") {
+                expect(MapKeyVariable("a"), false, ::isNotLowercase)
+                expect(MapKeyVariable("a"), false, ::isNotLowercase)
+            }
+        }
     }
 }

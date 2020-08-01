@@ -1,6 +1,6 @@
 package com.github.trilobiitti.trilobite.dna
 
-object NullDecisionVariable: DecisionVariable<DeciderInputBase, Unit> {
+object NullDecisionVariable : DecisionVariable<DeciderInputBase, Unit> {
     override fun getFrom(context: DecisionContext<DeciderInputBase>) = Unit
 }
 
@@ -92,6 +92,7 @@ private class AssumedDecisionContext<TIn : DeciderInputBase>(
     override val input: TIn
         get() = throw IllegalStateException("Unexpected input dependency for variable $targetVariable")
 
+    @Suppress("UNCHECKED_CAST")
     override fun <TVar : DeciderVariableValueBase> get(variable: DecisionVariable<TIn, TVar>): TVar =
             (assumptions[variable]
                     ?: throw IllegalStateException("Unexpected dependency on $variable for $targetVariable"))
@@ -109,9 +110,32 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
     private val rules: MutableList<Rule<TIn, TItem>> = mutableListOf()
 
     override fun addRule(conditions: Iterable<DecisionCondition<TIn, *>>, item: TItem) {
+        val conditionsMap = mutableMapOf(*(conditions.map { it.variable to it.value }).toTypedArray())
+
+        if (conditionsMap.size < conditions.count()) {
+            val contradictingConditions = conditions
+                    .groupBy({ it.variable }, { it.value })
+                    .mapValues { it.value.toSet() }
+                    .filter { it.value.size > 1 }
+
+            if (contradictingConditions.isNotEmpty()) {
+                throw IllegalArgumentException(
+                        "Contradicting conditions are provided for ${
+                        if (contradictingConditions.size > 1) "some variables" else "a variable"
+                        }: ${
+                        contradictingConditions
+                                .map { rule ->
+                                    "variable ${rule.key} is expected to be both ${
+                                    rule.value.joinToString(" and ") { "\"$it\"" }}"
+                                }
+                                .joinToString("; ")
+                        }"
+                )
+            }
+        }
+
         rules.add(
-                Rule(mutableMapOf(*(conditions.map { it.variable to it.value }).toTypedArray()),
-                        item)
+                Rule(conditionsMap, item)
         )
     }
 
@@ -228,7 +252,7 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
         }
 
         // Finally, create the node
-        return DecisionTreeNode<TIn, TItem, TOut>(
+        return DecisionTreeNode(
                 splitVar,
                 nodeItems,
                 children,
