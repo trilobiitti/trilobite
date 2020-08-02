@@ -5,7 +5,7 @@ typealias DeciderVariableValueBase = Any
 typealias DeciderItemBase = Any
 
 /**
- * DecisionVariable is *suddenly* a function of [Decider] input and (probably some other [DecisionVariable]'s).
+ * DecisionVariable is *suddenly* a function of [Decider] input (and probably some other [DecisionVariable]'s).
  *
  * [Decider] will compute values of [DecisionVariable]'s for passed input object when they are necessary to take the
  * decision.

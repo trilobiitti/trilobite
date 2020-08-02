@@ -221,7 +221,7 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
         splitVar!!
 
         // Get set of rules that do not involve the chosen split variable and remove list of them from the map,
-        // so map keys now imclude possible values of the split variable only
+        // so map keys now include possible values of the split variable only
         val defaultRules = grouped[DEFAULT_SENTINEL]
         grouped.remove(DEFAULT_SENTINEL)
 
