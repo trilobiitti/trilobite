@@ -167,8 +167,9 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
     private fun <TOut, TInv> buildTree(
             rules_: Iterable<Rule<TIn, TItem>>,
             outFactory: DecisionFactory<TIn, TItem, TInv, TOut>,
-            assumptions: Map<DecisionVariable<TIn, DeciderVariableValueBase>, DeciderVariableValueBase>
+            assumptions_: Map<DecisionVariable<TIn, DeciderVariableValueBase>, DeciderVariableValueBase>
     ): DecisionTreeNode<TIn, TItem, TInv, TOut> {
+        var assumptions = assumptions_
         var rules: Iterable<Rule<TIn, TItem>> = rules_
         var splitVar: DecisionVariable<TIn, DeciderVariableValueBase>?
         var grouped: MutableMap<DeciderVariableValueBase, MutableList<Rule<TIn, TItem>>> = mutableMapOf()
@@ -216,6 +217,7 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
 
             rules = remainingRules
             grouped = mutableMapOf()
+            assumptions = assumptions + mapOf(splitVar to knownValue)
         }
 
         splitVar!!
