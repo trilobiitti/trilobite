@@ -55,6 +55,39 @@ data class PredicateVariable<TIn : DeciderInputBase, TVar : DeciderVariableValue
     override fun isMetaVariable(): Boolean = true
 }
 
+data class RegexpMatchVariable<TIn : DeciderInputBase>(
+        private val variable: DecisionVariable<TIn, String>,
+        private val pattern: String
+) : DecisionVariable<TIn, Boolean> {
+    // Regex doesn't support equality check (Regex(".*") != Regex(".*")) so only regex's pattern is kept
+    // as constructor parameter (and thus is used for generated hash/comparison methods)
+    private val regex = Regex(pattern)
+
+    override fun getFrom(context: DecisionContext<TIn>): Boolean = context[variable].matches(regex)
+
+    override fun getDependencies(): List<DecisionVariable<TIn, *>> = listOf(variable)
+
+    override fun isMetaVariable(): Boolean = true
+
+    override fun toString(): String = "$variable matches Regex($pattern)"
+}
+
+data class CollectionSizeVariable<TIn : DeciderInputBase>(
+        private val variable: DecisionVariable<TIn, Collection<*>>
+) : DecisionVariable<TIn, Int> {
+    override fun getFrom(context: DecisionContext<TIn>): Int = context[variable].size
+    override fun getDependencies(): List<DecisionVariable<TIn, *>> = listOf(variable)
+    override fun isMetaVariable(): Boolean = true
+    override fun toString(): String = "size of $variable"
+}
+
+class IdentityVariable<TIn : DeciderInputBase> /*where TIn: DeciderVariableValueBase*/ : DecisionVariable<TIn, TIn> {
+    override fun getFrom(context: DecisionContext<TIn>): TIn = context.input
+
+    override fun equals(other: Any?): Boolean = other is IdentityVariable<*>
+    override fun hashCode(): Int = 666
+}
+
 class ContextIndependentImmutableDecisionFactory<TIn : DeciderInputBase, TItem : DeciderItemBase, TOut>(
         private val transform: (items: Iterable<TItem>) -> TOut
 ) : DecisionFactory<TIn, TItem, TOut, TOut> {

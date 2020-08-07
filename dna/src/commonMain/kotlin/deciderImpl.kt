@@ -62,7 +62,7 @@ private class DecisionTreeNode<TIn : DeciderInputBase, TItem : DeciderItemBase, 
     }
 }
 
-private class DefaultDecisionContext<TIn : DeciderInputBase>(
+class DefaultDecisionContext<TIn : DeciderInputBase>(
         override val input: TIn
 ) : DecisionContext<TIn> {
     private val resolved: MutableMap<DecisionVariable<TIn, *>, DeciderVariableValueBase> = mutableMapOf()

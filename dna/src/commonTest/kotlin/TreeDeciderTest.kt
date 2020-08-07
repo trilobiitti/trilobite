@@ -9,7 +9,7 @@ class TreeDeciderTest {
         override fun getFrom(context: DecisionContext<Map<String, String>>): String = context.input[key] ?: ""
     }
 
-    private fun concatStrings(items: Iterable<String>): String = items.toList().sorted().joinToString(", ")
+    private fun concatStrings(items: Iterable<String>): String = items.sorted().joinToString(", ")
 
     private fun isNotLowercase(s: String): Boolean = s != s.toLowerCase()
     private fun isNotUppercase(s: String): Boolean = s != s.toUpperCase()
