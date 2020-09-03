@@ -16,15 +16,15 @@ interface DataType<T : Any?> {
     /**
      * Converts value to this type.
      *
-     * @throws IllegalArgumentException if the value cannot be converted to this type
+     * @throws ValidationError if the value cannot be converted to this type
+     * @throws ValidationError if value can be converted to [T] but is not a valid value for this type
      */
     fun cast(value: Any?): T
 
     /**
      * Checks if value of type [T] belongs to this type.
      *
-     * TODO: Implement a separate ValidationException class
-     * @throws IllegalArgumentException if the value doesn't match any constraints this type specifies
+     * @throws ValidationError if the value doesn't match any constraints this type specifies
      */
     fun validate(value: T)
 

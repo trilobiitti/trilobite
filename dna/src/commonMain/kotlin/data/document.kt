@@ -73,7 +73,7 @@ interface Document : ReadableDocument, WritableDocument
  * A [FieldReader] may read just a single field of a document or create a value based on values of few document fields
  * (including fields of nested documents).
  */
-interface FieldReader<out T : Any> {
+interface FieldReader<out T> {
     /**
      * Reads a value from document.
      */
@@ -86,7 +86,7 @@ interface FieldReader<out T : Any> {
  * A [FieldWriter] may just write a single field of document or write values of few document fields including fields of
  * nested documents.
  */
-interface FieldWriter<in T : Any> {
+interface FieldWriter<in T> {
     /**
      * Writes field of a document.
      */
@@ -96,4 +96,4 @@ interface FieldWriter<in T : Any> {
 /**
  * Object that both reads and writes a value of type [T] from/to a document.
  */
-interface FieldAccessor<T : Any> : FieldReader<T>, FieldWriter<T>
+interface FieldAccessor<T> : FieldReader<T>, FieldWriter<T>

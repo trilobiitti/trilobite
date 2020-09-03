@@ -48,7 +48,7 @@ data class CollectionType<T, C : Collection<T>>(
 
     @Suppress("UNCHECKED_CAST")
     override fun cast(value: Any?): C {
-        val v = value as? Collection<*> ?: throw IllegalArgumentException("Value is not a collection")
+        val v = value as? Collection<*> ?: throw SimpleValidationError("Value is not a collection")
 
         if (isInstance(v)) return v as C
 
@@ -56,18 +56,14 @@ data class CollectionType<T, C : Collection<T>>(
     }
 
     override fun validate(value: C) {
-        var pairs: List<Pair<Int, Exception>> = emptyList()
+        val errors = ValidationError.accumulator()
 
         for ((i, v) in value.withIndex())
-            try {
+            errors.collectErrorFor(i) {
                 itemType.validate(v)
-            } catch (e: Exception) {
-                pairs = pairs + listOf(i to e)
             }
 
-        if (pairs.isNotEmpty())
-        // TODO: Use information in [pairs] to format a more informative exception
-            throw IllegalArgumentException("Some values are invalid")
+        errors.flush()
     }
 
     override val runtimeClass
