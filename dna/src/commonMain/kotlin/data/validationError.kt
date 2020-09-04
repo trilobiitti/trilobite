@@ -24,7 +24,7 @@ abstract class ValidationError : Exception() {
                 val v = this.v
                 if (v === null) return
 
-                val topLevelErrors = v[TOP_LEVEL_ERROR_SENTINEL] ?: emptyList()
+                val topLevelErrors = v[TOP_LEVEL_ERROR_SENTINEL] ?: emptyList<ValidationError>()
                 v.remove(TOP_LEVEL_ERROR_SENTINEL)
 
                 if (v.isEmpty() && topLevelErrors.size == 1)
