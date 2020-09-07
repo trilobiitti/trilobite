@@ -156,4 +156,6 @@ interface DeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> {
  * You may think of it as of a dynamic `switch` operator that takes multiple input variables and produces multiple
  * results.
  */
-interface Decider<TIn : DeciderInputBase, TOut> : (TIn) -> TOut
+interface Decider<TIn : DeciderInputBase, TOut> {
+    operator fun invoke(input :TIn): TOut
+}

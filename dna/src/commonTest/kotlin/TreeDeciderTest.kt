@@ -20,7 +20,7 @@ class TreeDeciderTest {
                     .build(ContextIndependentImmutableDecisionFactory(::concatStrings))
 
     @Test
-    fun `should handle simple conditions`() {
+    fun shouldHandleSimpleConditions() {
         val d = build {
             add("a is 1") {
                 expect(MapKeyVariable("a"), "1")
@@ -42,7 +42,7 @@ class TreeDeciderTest {
     }
 
     @Test
-    fun `should handle predicate variables`() {
+    fun shouldHandlePredicateVariables() {
         val d = build {
             add("a is not lowercase") {
                 expect(MapKeyVariable("a"), false, ::isNotLowercase)
@@ -63,7 +63,7 @@ class TreeDeciderTest {
     }
 
     @Test
-    fun `should throw when contradicting conditions are provided`() {
+    fun shouldThrowWhenContradictingConditionsAreProvided() {
         assertFails {
             build {
                 add("a is not lowercase and a is not not lowercase") {
@@ -75,7 +75,7 @@ class TreeDeciderTest {
     }
 
     @Test
-    fun `should not fail when there are duplicate conditions`() {
+    fun shouldNotFailWhenThereAreDuplicateConditions() {
         build {
             add("a is not lowercase") {
                 expect(MapKeyVariable("a"), false, ::isNotLowercase)
