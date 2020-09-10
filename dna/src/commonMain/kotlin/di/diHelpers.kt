@@ -48,6 +48,9 @@ fun DI.resolve(key: DependencyKey, vararg args: Any?) = this.getResolver(key)(ar
  * // will be equivalent to
  * DI.register("current bar") { myBar }
  * ```
+ *
+ * Multiplatform warning: It's recommended to declare bindings inside a global object to make them accessible as
+ * immutable objects on non-main threads of native applications.
  */
 @OptIn(ExperimentalStdlibApi::class)
 abstract class BaseDependencyBinding<T : Any, F : Function<T>>(

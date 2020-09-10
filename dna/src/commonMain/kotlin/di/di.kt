@@ -40,7 +40,9 @@ interface DI {
     fun register(key: DependencyKey, resolver: DependencyResolver)
 
     companion object : DI {
-        lateinit var instance: DI
+        var instance: DI
+            get() = getCurrentDIInstance()
+            set(value) = setCurrentDIInstance(value)
 
         override fun getResolver(key: DependencyKey): DependencyResolver =
                 instance.getResolver(key)
@@ -49,3 +51,6 @@ interface DI {
                 instance.register(key, resolver)
     }
 }
+
+expect fun getCurrentDIInstance(): DI
+expect fun setCurrentDIInstance(instance: DI)

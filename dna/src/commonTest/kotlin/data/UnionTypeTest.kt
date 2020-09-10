@@ -24,8 +24,12 @@ class UnionTypeTest : DIAwareTest {
             floats.cast("42.0")
         }
 
-        assertFailsWith(ValidationError::class) {
-            floats.validate(42)
+        /* WTF-KOTLIN-JS-OF-THE-DAY: Just WTF?
+         */
+        if (!Double::class.isInstance(42)) {
+            assertFailsWith(ValidationError::class) {
+                floats.validate(42)
+            }
         }
 
         assertFalse(floats.isInstance(42L))

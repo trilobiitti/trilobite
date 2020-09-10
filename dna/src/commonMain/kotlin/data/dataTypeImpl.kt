@@ -4,10 +4,6 @@ import com.github.trilobiitti.trilobite.dna.di.bindDependency
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
 
-val convertValue = bindDependency<Any, Any?, KClass<*>>("convert value") { value, clz ->
-    throw SimpleValidationError("'$value' ${value?.let { " (of type ${it::class})" }} cannot be converted to $clz")
-}
-
 data class ClassType<T : Any>(
         private val clz: KClass<T>
 ) : DataType<T> {
@@ -27,6 +23,12 @@ data class ClassType<T : Any>(
 
     override val runtimeClass
         get() = clz
+
+    companion object {
+        val convertValue = bindDependency<Any, Any?, KClass<*>>("convert value") { value, clz ->
+            throw SimpleValidationError("'$value' ${value?.let { " (of type ${it::class})" }} cannot be converted to $clz")
+        }
+    }
 }
 
 data class CollectionType<T, C : Collection<T>>(
