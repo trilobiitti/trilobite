@@ -19,7 +19,7 @@ class PathExpressionTest {
                     })
 
     @Test
-    fun `should produce correct conditions for non-parametrized paths`() {
+    fun shouldProduceCorrectConditionsForNonParametrizedPaths() {
         val d = d(e("/a/b/c") to "abc")
 
         assertEquals("abc", d("/a/b/c"))
@@ -32,7 +32,7 @@ class PathExpressionTest {
     }
 
     @Test
-    fun `should produce correct conditions for expressions with parameters`() {
+    fun shouldProduceCorrectConditionsForExpressionsWithParameters() {
         val d = d(e("/a/:b/c") to "abc")
 
         assertEquals("abc", d("/a/b/c"))
@@ -45,7 +45,7 @@ class PathExpressionTest {
     }
 
     @Test
-    fun `should produce correct conditions for expressions with regexps`() {
+    fun shouldProduceCorrectConditionsForExpressionsWithRegexps() {
         val d = d(e("/a/:(b|c)") to "abc")
 
         assertEquals("abc", d("/a/b"))
@@ -58,7 +58,7 @@ class PathExpressionTest {
     }
 
     @Test
-    fun `should extract parameters`() {
+    fun shouldExtractParameters() {
         val e = e("/:p1/b/:p2")
         val m = mutableMapOf<String, String>()
 

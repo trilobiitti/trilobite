@@ -1,7 +1,10 @@
 package com.github.trilobiitti.trilobite.dna
 
-object NullDecisionVariable : DecisionVariable<DeciderInputBase, Unit> {
-    override fun getFrom(context: DecisionContext<DeciderInputBase>) = Unit
+// WTF-KOTLIN-JS-OF-THE-DAY: Initially this was parametrized as DecisionVariable<DeciderInputBase, Unit> but (probably)
+// returned `Unit` value causes cast error in [DefaultDecisionContext.get] so, as output returned from this variable is
+// not used anywhere anyway, let it just return itself
+object NullDecisionVariable : DecisionVariable<DeciderInputBase, NullDecisionVariable> {
+    override fun getFrom(context: DecisionContext<DeciderInputBase>) = NullDecisionVariable
 }
 
 private class DecisionTreeNode<TIn : DeciderInputBase, TItem : DeciderItemBase, TInv, TOut>(

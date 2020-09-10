@@ -12,7 +12,7 @@ class DefaultOrderTest {
     }
 
     @Test
-    fun `should order linearly orderable things`() {
+    fun shouldOrderLinearlyOrderableThings() {
         order += "1" to "2"
 
         order["1"] = "a"
@@ -28,7 +28,7 @@ class DefaultOrderTest {
     }
 
     @Test
-    fun `should remove items`() {
+    fun shouldRemoveItems() {
         order["1"] = "a"
         order["2"] = "b"
         val token = order.register(order.parseKey("3"), "c")
@@ -50,7 +50,7 @@ class DefaultOrderTest {
     }
 
     @Test
-    fun `should not remove items twice`() {
+    fun shouldNotRemoveItemsTwice() {
         val token = order.register(order.parseKey("1"), "a")
 
         token.unregister()
@@ -59,7 +59,7 @@ class DefaultOrderTest {
     }
 
     @Test
-    fun `should keep multiple values for the same key`() {
+    fun shouldKeepMultipleValuesForTheSameKey() {
         order["1"] = "a"
         order["1"] = "b"
         order["2"] = "c"
@@ -75,7 +75,7 @@ class DefaultOrderTest {
     }
 
     @Test
-    fun `should detect loops`() {
+    fun shouldDetectLoops() {
         order["1"] = "a"
         order["2"] = "b"
         order["3"] = "c"
@@ -90,7 +90,7 @@ class DefaultOrderTest {
     }
 
     @Test
-    fun `should delete links`() {
+    fun shouldDeleteLinks() {
         order["1"] = "a"
         order["2"] = "b"
         order["3"] = "c"
@@ -112,7 +112,7 @@ class DefaultOrderTest {
     }
 
     @Test
-    fun `should not delete links twice`() {
+    fun shouldNotDeleteLinksTwice() {
         val tk = order.link(order.parseKey("3"), order.parseKey("1"))
 
         tk.unregister()
@@ -121,7 +121,7 @@ class DefaultOrderTest {
     }
 
     @Test
-    fun `should handle duplicate links`() {
+    fun shouldHandleDuplicateLinks() {
         order["1"] = "a"
         order["2"] = "b"
         order["3"] = "c"

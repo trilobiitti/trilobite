@@ -11,8 +11,8 @@ class TreeDeciderTest {
 
     private fun concatStrings(items: Iterable<String>): String = items.sorted().joinToString(", ")
 
-    private fun isNotLowercase(s: String): Boolean = s != s.toLowerCase()
-    private fun isNotUppercase(s: String): Boolean = s != s.toUpperCase()
+    private val isNotLowercase: (s: String) -> Boolean = { s -> s != s.toLowerCase() }
+    private val isNotUppercase: (s: String) -> Boolean = { s -> s != s.toUpperCase() }
 
     private fun build(block: DeciderBuilder<Map<String, String>, String>.() -> Unit): Decider<Map<String, String>, String> =
             DefaultDeciderBuilder<Map<String, String>, String>()
@@ -20,7 +20,7 @@ class TreeDeciderTest {
                     .build(ContextIndependentImmutableDecisionFactory(::concatStrings))
 
     @Test
-    fun `should handle simple conditions`() {
+    fun shouldHandleSimpleConditions() {
         val d = build {
             add("a is 1") {
                 expect(MapKeyVariable("a"), "1")
@@ -42,13 +42,13 @@ class TreeDeciderTest {
     }
 
     @Test
-    fun `should handle predicate variables`() {
+    fun shouldHandlePredicateVariables() {
         val d = build {
             add("a is not lowercase") {
-                expect(MapKeyVariable("a"), false, ::isNotLowercase)
+                expect(MapKeyVariable("a"), false, isNotLowercase)
             }
             add("a is not uppercase") {
-                expect(MapKeyVariable("a"), false, ::isNotUppercase)
+                expect(MapKeyVariable("a"), false, isNotUppercase)
             }
             add("a is UP") {
                 expect(MapKeyVariable("a"), "UP")
@@ -63,23 +63,23 @@ class TreeDeciderTest {
     }
 
     @Test
-    fun `should throw when contradicting conditions are provided`() {
+    fun shouldThrowWhenContradictingConditionsAreProvided() {
         assertFails {
             build {
                 add("a is not lowercase and a is not not lowercase") {
-                    expect(MapKeyVariable("a"), false, ::isNotLowercase)
-                    expect(MapKeyVariable("a"), true, ::isNotLowercase)
+                    expect(MapKeyVariable("a"), false, isNotLowercase)
+                    expect(MapKeyVariable("a"), true, isNotLowercase)
                 }
             }
         }
     }
 
     @Test
-    fun `should not fail when there are duplicate conditions`() {
+    fun shouldNotFailWhenThereAreDuplicateConditions() {
         build {
             add("a is not lowercase") {
-                expect(MapKeyVariable("a"), false, ::isNotLowercase)
-                expect(MapKeyVariable("a"), false, ::isNotLowercase)
+                expect(MapKeyVariable("a"), false, isNotLowercase)
+                expect(MapKeyVariable("a"), false, isNotLowercase)
             }
         }
     }
