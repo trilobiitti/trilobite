@@ -13,7 +13,7 @@ class SchemaFieldImpl<T>(
     }
 }
 
-private val DOCUMENT_TYPE = ClassType(Document::class) { TODO("Deal with 'extendedCast'...") }
+private val DOCUMENT_TYPE = ClassType(Document::class)
 
 class SchemaImpl(
         fields: Iterable<SchemaField<*>>
