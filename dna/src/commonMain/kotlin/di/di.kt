@@ -17,12 +17,17 @@ class UnknownDependencyException(val key: DependencyKey) : Exception("Unknown de
  *
  * Dependency resolution strategies (implemented as [DependencyResolver]s) are stored in a key-value storage (container)
  * implementing this interface. Companion object of this interface also implements it and delegates all calls
- * to an instance of [DI] assigned to [DI.instance]. That instance may be a storage itself or forward calls to
- * other DI instances depending on execution context (e.g. to an instance acquired from thread-local variable).
+ * to a thread-local (if applicable) instance of [DI] assigned to [DI.instance].
  *
+ * OUTDATED NOTE:
  * *I would like to implement a cross-platform version of DI that uses current coroutine context but unfortunately
  * `coroutineContext` variable is not accessible from non-suspend functions (and I don't want dependency resolution
  * to be suspending for now) so such implementation (using `ThreadLocal.asContextElement`) will be there for JVM only.*
+ *
+ * UPDATED NOTE:
+ * *Coroutine-local DI is now implemented by [DIContextElement] but it is based on such a dirty hacks, so let's just
+ * hope that something like `ThreadLocal.asContextElement` will be implemented in future versions of kotlin native and
+ * kotlin js*
  */
 interface DI {
     /**

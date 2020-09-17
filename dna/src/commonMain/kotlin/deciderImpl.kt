@@ -164,7 +164,7 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
             }
         }
 
-        return counts.entries.maxBy { it.value }?.key
+        return counts.entries.maxByOrNull { it.value }?.key
     }
 
     private fun <TOut, TInv> buildTree(

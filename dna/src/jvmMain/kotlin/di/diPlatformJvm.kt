@@ -1,9 +1,9 @@
 package com.github.trilobiitti.trilobite.dna.di
 
-private lateinit var currentDIInstance: DI
+private val currentDIInstance: ThreadLocal<DI> = ThreadLocal.withInitial { NullDIContainer }
 
-actual fun getCurrentDIInstance(): DI = currentDIInstance
+actual fun getCurrentDIInstance(): DI = currentDIInstance.get()
 
 actual fun setCurrentDIInstance(instance: DI) {
-    currentDIInstance = instance
+    currentDIInstance.set(instance)
 }

@@ -10,3 +10,12 @@ class PlainDIContainer(
         map[key] = resolver
     }
 }
+
+object NullDIContainer : DI {
+    private inline fun err(): Nothing =
+            throw IllegalStateException("Container is not initialized")
+
+    override fun getResolver(key: DependencyKey): DependencyResolver = err()
+
+    override fun register(key: DependencyKey, resolver: DependencyResolver) = err()
+}
