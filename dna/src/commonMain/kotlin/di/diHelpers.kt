@@ -7,6 +7,25 @@ import kotlin.reflect.cast
 fun DI.resolve(key: DependencyKey, vararg args: Any?) = this.getResolver(key)(args)
 
 /**
+ * Runs a block of code with provided [DI] instance set as current.
+ *
+ * @param di the [DI] instance to use
+ * @param block clock of code to be executed with [di] as current DI container
+ * @return value returned from [block]
+ */
+inline fun <T> withDI(di: DI, block: () -> T): T {
+    val prevDI = getCurrentDIInstance()
+
+    setCurrentDIInstance(di)
+
+    try {
+        return block()
+    } finally {
+        setCurrentDIInstance(prevDI)
+    }
+}
+
+/**
  * Base class for objects that bind a dependency injectable through [DI] to a function-like object or delegated
  * variable.
  *

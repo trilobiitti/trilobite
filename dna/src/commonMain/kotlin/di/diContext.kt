@@ -45,18 +45,6 @@ data class DIContextElement(
             restContext.fold(operation(initial, this), operation)
 }
 
-inline fun <T> withDI(di: DI, block: () -> T): T {
-    val prevDI = getCurrentDIInstance()
-
-    setCurrentDIInstance(di)
-
-    try {
-        return block()
-    } finally {
-        setCurrentDIInstance(prevDI)
-    }
-}
-
 fun <T> CoroutineScope.withDI(di: DI, block: CoroutineScope.() -> T): T =
         CoroutineScope(DIContextElement(di, this.coroutineContext)).run {
             com.github.trilobiitti.trilobite.dna.di.withDI(di) { block() }
