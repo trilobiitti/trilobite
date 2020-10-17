@@ -88,7 +88,7 @@ private class TreeDecider<TIn : DeciderInputBase, TItem : DeciderItemBase, TInv,
             .also { root.print(it, "") }.toString()
 }
 
-private val DEFAULT_SENTINEL = object {}
+private val DEFAULT_SENTINEL: Any = object {}
 
 private class AssumedDecisionContext<TIn : DeciderInputBase>(
         val targetVariable: DecisionVariable<TIn, *>,

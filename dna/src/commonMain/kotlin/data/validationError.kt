@@ -7,7 +7,7 @@ abstract class ValidationError : Exception() {
     abstract fun format(dst: Appendable, path: String = "")
 
     companion object {
-        private val TOP_LEVEL_ERROR_SENTINEL = object {}
+        private val TOP_LEVEL_ERROR_SENTINEL: Any = object {}
 
         class Accumulator {
             private var v: MutableMap<Any, MutableList<ValidationError>>? = null
