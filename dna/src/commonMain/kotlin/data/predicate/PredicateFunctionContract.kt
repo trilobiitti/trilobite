@@ -1,4 +1,4 @@
-package com.github.trilobiitti.trilobite.dna.predicate
+package com.github.trilobiitti.trilobite.dna.data.predicate
 
 import com.github.trilobiitti.trilobite.dna.data.DataType
 import com.github.trilobiitti.trilobite.dna.data.ValidationError
