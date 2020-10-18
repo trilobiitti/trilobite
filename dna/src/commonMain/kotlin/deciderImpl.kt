@@ -8,11 +8,11 @@ object NullDecisionVariable : DecisionVariable<DeciderInputBase, NullDecisionVar
 }
 
 private class DecisionTreeNode<TIn : DeciderInputBase, TItem : DeciderItemBase, TInv, TOut>(
-        val variable: DecisionVariable<TIn, DeciderVariableValueBase>,
-        val items: Iterable<TItem>,
-        val children: Map<DeciderVariableValueBase, DecisionTreeNode<TIn, TItem, *, TOut>>?,
-        val defaultChild: DecisionTreeNode<TIn, TItem, *, TOut>?,
-        val outputFactory: DecisionFactory<TIn, TItem, TInv, TOut>
+    val variable: DecisionVariable<TIn, DeciderVariableValueBase>,
+    val items: Iterable<TItem>,
+    val children: Map<DeciderVariableValueBase, DecisionTreeNode<TIn, TItem, *, TOut>>?,
+    val defaultChild: DecisionTreeNode<TIn, TItem, *, TOut>?,
+    val outputFactory: DecisionFactory<TIn, TItem, TInv, TOut>
 ) {
     init {
         children?.forEach { (_, it) -> it.parent = this }
@@ -22,7 +22,7 @@ private class DecisionTreeNode<TIn : DeciderInputBase, TItem : DeciderItemBase, 
     var parent: DecisionTreeNode<TIn, TItem, *, TOut>? = null
     val decisionInvariant: TInv by lazy {
         outputFactory.initDecisionInvariant(
-                mutableListOf<TItem>().also { addItemsTo(it) }
+            mutableListOf<TItem>().also { addItemsTo(it) }
         )
     }
 
@@ -49,8 +49,8 @@ private class DecisionTreeNode<TIn : DeciderInputBase, TItem : DeciderItemBase, 
 
     companion object {
         tailrec fun <TIn : DeciderInputBase, TItem : DeciderItemBase, TInv, TOut> process(
-                node: DecisionTreeNode<TIn, TItem, TInv, TOut>,
-                context: DecisionContext<TIn>
+            node: DecisionTreeNode<TIn, TItem, TInv, TOut>,
+            context: DecisionContext<TIn>
         ): TOut {
             val value = context[node.variable]
 
@@ -66,17 +66,17 @@ private class DecisionTreeNode<TIn : DeciderInputBase, TItem : DeciderItemBase, 
 }
 
 class DefaultDecisionContext<TIn : DeciderInputBase>(
-        override val input: TIn
+    override val input: TIn
 ) : DecisionContext<TIn> {
     private val resolved: MutableMap<DecisionVariable<TIn, *>, DeciderVariableValueBase> = mutableMapOf()
 
     @Suppress("UNCHECKED_CAST")
     override fun <TVar : DeciderVariableValueBase> get(variable: DecisionVariable<TIn, TVar>): TVar =
-            resolved.getOrPut(variable) { variable.getFrom(this) } as TVar
+        resolved.getOrPut(variable) { variable.getFrom(this) } as TVar
 }
 
 private class TreeDecider<TIn : DeciderInputBase, TItem : DeciderItemBase, TInv, TOut>(
-        private val root: DecisionTreeNode<TIn, TItem, TInv, TOut>
+    private val root: DecisionTreeNode<TIn, TItem, TInv, TOut>
 ) : Decider<TIn, TOut> {
     override fun invoke(input: TIn): TOut {
         val context = DefaultDecisionContext(input)
@@ -84,30 +84,32 @@ private class TreeDecider<TIn : DeciderInputBase, TItem : DeciderItemBase, TInv,
     }
 
     override fun toString(): String = StringBuilder()
-            .append("${super.toString()}\n")
-            .also { root.print(it, "") }.toString()
+        .append("${super.toString()}\n")
+        .also { root.print(it, "") }.toString()
 }
 
 private val DEFAULT_SENTINEL: Any = object {}
 
 private class AssumedDecisionContext<TIn : DeciderInputBase>(
-        val targetVariable: DecisionVariable<TIn, *>,
-        val assumptions: Map<DecisionVariable<TIn, *>, DeciderVariableValueBase>
+    val targetVariable: DecisionVariable<TIn, *>,
+    val assumptions: Map<DecisionVariable<TIn, *>, DeciderVariableValueBase>
 ) : DecisionContext<TIn> {
     override val input: TIn
         get() = throw IllegalStateException("Unexpected input dependency for variable $targetVariable")
 
     @Suppress("UNCHECKED_CAST")
     override fun <TVar : DeciderVariableValueBase> get(variable: DecisionVariable<TIn, TVar>): TVar =
-            (assumptions[variable]
-                    ?: throw IllegalStateException("Unexpected dependency on $variable for $targetVariable"))
-                    as TVar
+        (
+            assumptions[variable]
+                ?: throw IllegalStateException("Unexpected dependency on $variable for $targetVariable")
+            )
+            as TVar
 }
 
 class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : DeciderBuilder<TIn, TItem> {
     private class Rule<TIn : DeciderItemBase, TItem : DeciderItemBase>(
-            val conditions: MutableMap<DecisionVariable<TIn, DeciderVariableValueBase>, DeciderVariableValueBase>,
-            val item: TItem
+        val conditions: MutableMap<DecisionVariable<TIn, DeciderVariableValueBase>, DeciderVariableValueBase>,
+        val item: TItem
     ) {
         fun copy() = Rule(conditions.toMutableMap(), item)
     }
@@ -119,28 +121,28 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
 
         if (conditionsMap.size < conditions.count()) {
             val contradictingConditions = conditions
-                    .groupBy({ it.variable }, { it.value })
-                    .mapValues { it.value.toSet() }
-                    .filter { it.value.size > 1 }
+                .groupBy({ it.variable }, { it.value })
+                .mapValues { it.value.toSet() }
+                .filter { it.value.size > 1 }
 
             if (contradictingConditions.isNotEmpty()) {
                 throw IllegalArgumentException(
-                        "Contradicting conditions are provided for ${
-                        if (contradictingConditions.size > 1) "some variables" else "a variable"
-                        }: ${
-                        contradictingConditions
-                                .map { rule ->
-                                    "variable ${rule.key} is expected to be both ${
-                                    rule.value.joinToString(" and ") { "\"$it\"" }}"
-                                }
-                                .joinToString("; ")
-                        }"
+                    "Contradicting conditions are provided for ${
+                    if (contradictingConditions.size > 1) "some variables" else "a variable"
+                    }: ${
+                    contradictingConditions
+                        .map { rule ->
+                            "variable ${rule.key} is expected to be both ${
+                            rule.value.joinToString(" and ") { "\"$it\"" }}"
+                        }
+                        .joinToString("; ")
+                    }"
                 )
             }
         }
 
         rules.add(
-                Rule(conditionsMap, item)
+            Rule(conditionsMap, item)
         )
     }
 
@@ -168,9 +170,9 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
     }
 
     private fun <TOut, TInv> buildTree(
-            rules_: Iterable<Rule<TIn, TItem>>,
-            outFactory: DecisionFactory<TIn, TItem, TInv, TOut>,
-            assumptions_: Map<DecisionVariable<TIn, DeciderVariableValueBase>, DeciderVariableValueBase>
+        rules_: Iterable<Rule<TIn, TItem>>,
+        outFactory: DecisionFactory<TIn, TItem, TInv, TOut>,
+        assumptions_: Map<DecisionVariable<TIn, DeciderVariableValueBase>, DeciderVariableValueBase>
     ): DecisionTreeNode<TIn, TItem, TInv, TOut> {
         var assumptions = assumptions_
         var rules: Iterable<Rule<TIn, TItem>> = rules_
@@ -184,11 +186,11 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
                 // If there are no more variables to choose from then remaining rules have no more additional conditions
                 // and the new node will become a leaf
                 return DecisionTreeNode(
-                        NullDecisionVariable,
-                        rules.map { it.item },
-                        null,
-                        null,
-                        outFactory
+                    NullDecisionVariable,
+                    rules.map { it.item },
+                    null,
+                    null,
+                    outFactory
                 )
             }
 
@@ -260,21 +262,21 @@ class DefaultDeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> : D
 
         // Finally, create the node
         return DecisionTreeNode(
-                splitVar,
-                nodeItems,
-                children,
-                defaultChild,
-                outFactory
+            splitVar,
+            nodeItems,
+            children,
+            defaultChild,
+            outFactory
         )
     }
 
     override fun <TInv, TOut> build(decisionFactory: DecisionFactory<TIn, TItem, TInv, TOut>): Decider<TIn, TOut> =
-            TreeDecider(
-                    buildTree(
-                            // Copy rules list so this builder can be reused later with (or without) new rules added
-                            rules.map { it.copy() },
-                            decisionFactory,
-                            mapOf()
-                    )
+        TreeDecider(
+            buildTree(
+                // Copy rules list so this builder can be reused later with (or without) new rules added
+                rules.map { it.copy() },
+                decisionFactory,
+                mapOf()
             )
+        )
 }

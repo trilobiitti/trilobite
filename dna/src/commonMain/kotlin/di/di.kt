@@ -50,10 +50,10 @@ interface DI {
             set(value) = setCurrentDIInstance(value)
 
         override fun getResolver(key: DependencyKey): DependencyResolver =
-                instance.getResolver(key)
+            instance.getResolver(key)
 
         override fun register(key: DependencyKey, resolver: DependencyResolver) =
-                instance.register(key, resolver)
+            instance.register(key, resolver)
     }
 }
 

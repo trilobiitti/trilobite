@@ -1,6 +1,5 @@
 package com.github.trilobiitti.trilobite.dna
 
-
 /**
  * Parses a path (C.O.)
  *
@@ -8,11 +7,11 @@ package com.github.trilobiitti.trilobite.dna
  * @return path represented as list of steps
  */
 fun parsePath(path: String): List<String> = path
-        .split('/')
-        .filter(String::isNotEmpty)
+    .split('/')
+    .filter(String::isNotEmpty)
 
 private data class ParsedPathVariable<TIn : DeciderInputBase>(
-        private val pathVariable: DecisionVariable<TIn, String>
+    private val pathVariable: DecisionVariable<TIn, String>
 ) : DecisionVariable<TIn, List<String>> {
     override fun getFrom(context: DecisionContext<TIn>): List<String> = parsePath(context[pathVariable])
     override fun getDependencies(): List<DecisionVariable<TIn, *>> = listOf(pathVariable)
@@ -21,8 +20,8 @@ private data class ParsedPathVariable<TIn : DeciderInputBase>(
 }
 
 private data class PathStepVariable<TIn : DeciderInputBase>(
-        private val parsedPathVariable: DecisionVariable<TIn, List<String>>,
-        private val step: Int
+    private val parsedPathVariable: DecisionVariable<TIn, List<String>>,
+    private val step: Int
 ) : DecisionVariable<TIn, String> {
     override fun getFrom(context: DecisionContext<TIn>): String = context[parsedPathVariable].getOrElse(step) { "" }
     override fun getDependencies(): List<DecisionVariable<TIn, *>> = listOf(parsedPathVariable)
@@ -75,9 +74,9 @@ private val parametrizedPathExpressionRe = Regex(".*(^|/)$parameterStepPattern(/
  * @param source pattern/expression source
  */
 class PathExpression<TIn : DeciderInputBase>(
-        private val pathVariable: DecisionVariable<TIn, String>,
-        private val source: String,
-        private val exact: Boolean = true
+    private val pathVariable: DecisionVariable<TIn, String>,
+    private val source: String,
+    private val exact: Boolean = true
 ) {
     private val parsedPathVariable = ParsedPathVariable(pathVariable)
     private val _conditions: MutableList<DecisionCondition<TIn, *>> = mutableListOf()
@@ -97,11 +96,11 @@ class PathExpression<TIn : DeciderInputBase>(
                 parameterStepRe.matchEntire(stepExpr)?.let { match ->
                     match.groups[2]?.value?.let { parameterReSource ->
                         _conditions += DecisionCondition(
-                                RegexpMatchVariable(
-                                        PathStepVariable(parsedPathVariable, step),
-                                        parameterReSource
-                                ),
-                                true
+                            RegexpMatchVariable(
+                                PathStepVariable(parsedPathVariable, step),
+                                parameterReSource
+                            ),
+                            true
                         )
                     }
 
@@ -113,15 +112,15 @@ class PathExpression<TIn : DeciderInputBase>(
                 }
 
                 _conditions += DecisionCondition(
-                        PathStepVariable(parsedPathVariable, step),
-                        stepExpr
+                    PathStepVariable(parsedPathVariable, step),
+                    stepExpr
                 )
             }
 
             if (exact) {
                 _conditions += DecisionCondition(
-                        CollectionSizeVariable(parsedPathVariable),
-                        exprSteps.size
+                    CollectionSizeVariable(parsedPathVariable),
+                    exprSteps.size
                 )
             }
         } else {
@@ -129,13 +128,13 @@ class PathExpression<TIn : DeciderInputBase>(
 
             _conditions += if (exact) {
                 DecisionCondition(
-                        pathVariable,
-                        canonicalPath
+                    pathVariable,
+                    canonicalPath
                 )
             } else {
                 DecisionCondition(
-                        PredicateVariable(pathVariable) { it.startsWith(canonicalPath) },
-                        true
+                    PredicateVariable(pathVariable) { it.startsWith(canonicalPath) },
+                    true
                 )
             }
         }
@@ -145,14 +144,14 @@ class PathExpression<TIn : DeciderInputBase>(
      * Calls [callback] for each named parameter with values extracted from path stored in [context].
      */
     fun extractParameters(
-            context: DecisionContext<TIn>,
-            callback: (parameter: String, value: String) -> Unit
+        context: DecisionContext<TIn>,
+        callback: (parameter: String, value: String) -> Unit
     ) {
         val parsedPath = context[parsedPathVariable]
 
         parameterMappings.forEach { (index, name) ->
             val value = parsedPath.getOrNull(index) ?: throw IllegalArgumentException(
-                    "Path ${context[pathVariable]} doesn't match $this but is passed to it's #extractParameters()"
+                "Path ${context[pathVariable]} doesn't match $this but is passed to it's #extractParameters()"
             )
             callback(name, value)
         }

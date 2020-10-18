@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFails
 
 class TreeDeciderTest {
-    private data class MapKeyVariable(val key: String): DecisionVariable<Map<String, String>, String> {
+    private data class MapKeyVariable(val key: String) : DecisionVariable<Map<String, String>, String> {
         override fun getFrom(context: DecisionContext<Map<String, String>>): String = context.input[key] ?: ""
     }
 
@@ -15,9 +15,9 @@ class TreeDeciderTest {
     private val isNotUppercase: (s: String) -> Boolean = { s -> s != s.toUpperCase() }
 
     private fun build(block: DeciderBuilder<Map<String, String>, String>.() -> Unit): Decider<Map<String, String>, String> =
-            DefaultDeciderBuilder<Map<String, String>, String>()
-                    .also(block)
-                    .build(ContextIndependentImmutableDecisionFactory(::concatStrings))
+        DefaultDeciderBuilder<Map<String, String>, String>()
+            .also(block)
+            .build(ContextIndependentImmutableDecisionFactory(::concatStrings))
 
     @Test
     fun shouldHandleSimpleConditions() {

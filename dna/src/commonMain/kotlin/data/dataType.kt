@@ -43,4 +43,3 @@ interface DataType<T : Any?> {
      */
     val runtimeClass: KClass<*>
 }
-

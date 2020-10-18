@@ -2,7 +2,6 @@ package com.github.trilobiitti.trilobite.dna
 
 import kotlin.test.*
 
-
 class DefaultOrderTest {
     private lateinit var order: DefaultOrder<String>
 
@@ -22,8 +21,8 @@ class DefaultOrderTest {
         order += "2" to "3"
 
         assertEquals(
-                listOf("a", "b", "c"),
-                order.toLinearList()
+            listOf("a", "b", "c"),
+            order.toLinearList()
         )
     }
 
@@ -37,15 +36,15 @@ class DefaultOrderTest {
         order += "2" to "3"
 
         assertEquals(
-                listOf("a", "b", "c"),
-                order.toLinearList()
+            listOf("a", "b", "c"),
+            order.toLinearList()
         )
 
         token.unregister()
 
         assertEquals(
-                listOf("a", "b"),
-                order.toLinearList()
+            listOf("a", "b"),
+            order.toLinearList()
         )
     }
 
@@ -106,8 +105,8 @@ class DefaultOrderTest {
         order.validate()
 
         assertEquals(
-                listOf("a", "b", "c"),
-                order.toLinearList()
+            listOf("a", "b", "c"),
+            order.toLinearList()
         )
     }
 
@@ -143,8 +142,8 @@ class DefaultOrderTest {
         order.validate()
 
         assertEquals(
-                listOf("a", "b", "c"),
-                order.toLinearList()
+            listOf("a", "b", "c"),
+            order.toLinearList()
         )
     }
 }

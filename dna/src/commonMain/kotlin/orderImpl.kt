@@ -29,12 +29,12 @@ class DefaultOrder<TValue> : Order<DefaultKey, TValue> {
     private fun parseStringKey(source: String): DefaultKey {
         PRE_KEY_RE.matchEntire(source)?.let { match ->
             return PreKey(
-                    parseStringKey(match.groupValues[1])
+                parseStringKey(match.groupValues[1])
             )
         }
         POST_KEY_RE.matchEntire(source)?.let { match ->
             return PostKey(
-                    parseStringKey(match.groupValues[1])
+                parseStringKey(match.groupValues[1])
             )
         }
         return ConstantKey(source)
@@ -54,8 +54,8 @@ class DefaultOrder<TValue> : Order<DefaultKey, TValue> {
     }
 
     private inner class Node(
-            val key: DefaultKey,
-            val values: MutableSet<TValue>
+        val key: DefaultKey,
+        val values: MutableSet<TValue>
     ) {
         var mark = 0
         var dependencies = mutableSetOf<Link>()
@@ -83,8 +83,8 @@ class DefaultOrder<TValue> : Order<DefaultKey, TValue> {
     }
 
     private inner class ItemToken(
-            private val node: Node,
-            override val value: TValue
+        private val node: Node,
+        override val value: TValue
     ) : OrderItemToken<DefaultKey, TValue> {
         override val key get() = node.key
 
@@ -102,10 +102,13 @@ class DefaultOrder<TValue> : Order<DefaultKey, TValue> {
 
     private fun getNode(key: DefaultKey): Node {
         var created = false
-        val node = nodes.getOrPut(key, {
-            created = true
-            return@getOrPut Node(key, mutableSetOf())
-        })
+        val node = nodes.getOrPut(
+            key,
+            {
+                created = true
+                return@getOrPut Node(key, mutableSetOf())
+            }
+        )
 
         if (created) key.onRegistered(this)
 
@@ -125,8 +128,8 @@ class DefaultOrder<TValue> : Order<DefaultKey, TValue> {
     override fun register(value: TValue): OrderItemToken<DefaultKey, TValue> = register(UniqueKey(), value)
 
     private inner class Link(
-            val fromNode: Node,
-            val toNode: Node
+        val fromNode: Node,
+        val toNode: Node
     ) : OrderLinkToken<DefaultKey> {
         override val from: DefaultKey
             get() = fromNode.key
