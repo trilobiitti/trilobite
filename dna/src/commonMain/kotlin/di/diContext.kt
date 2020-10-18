@@ -7,8 +7,8 @@ import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.CoroutineContext
 
 data class DIContextElement(
-        val di: DI,
-        private val restContext: CoroutineContext
+    val di: DI,
+    private val restContext: CoroutineContext
 ) : AbstractCoroutineContextElement(ContinuationInterceptor), ContinuationInterceptor {
     override fun <T> interceptContinuation(continuation: Continuation<T>): Continuation<T> {
         var intercepted = Continuation<T>(continuation.context) { result ->
@@ -27,10 +27,10 @@ data class DIContextElement(
     }
 
     override fun plus(context: CoroutineContext): CoroutineContext =
-            DIContextElement(di, restContext + context)
+        DIContextElement(di, restContext + context)
 
     override fun minusKey(key: CoroutineContext.Key<*>): CoroutineContext =
-            DIContextElement(di, restContext.minusKey(key))
+        DIContextElement(di, restContext.minusKey(key))
 
     override fun <E : CoroutineContext.Element> get(key: CoroutineContext.Key<E>): E? {
         if (key === ContinuationInterceptor.Key) {
@@ -42,10 +42,10 @@ data class DIContextElement(
     }
 
     override fun <R> fold(initial: R, operation: (R, CoroutineContext.Element) -> R): R =
-            restContext.fold(operation(initial, this), operation)
+        restContext.fold(operation(initial, this), operation)
 }
 
 fun <T> CoroutineScope.withDI(di: DI, block: CoroutineScope.() -> T): T =
-        CoroutineScope(DIContextElement(di, this.coroutineContext)).run {
-            com.github.trilobiitti.trilobite.dna.di.withDI(di) { block() }
-        }
+    CoroutineScope(DIContextElement(di, this.coroutineContext)).run {
+        com.github.trilobiitti.trilobite.dna.di.withDI(di) { block() }
+    }

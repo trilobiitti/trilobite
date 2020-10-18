@@ -73,10 +73,10 @@ inline fun <T> withDI(di: DI, block: () -> T): T {
  */
 @OptIn(ExperimentalStdlibApi::class)
 abstract class BaseDependencyBinding<T : Any, F : Function<T>>(
-        val key: DependencyKey,
-        protected val default: F?,
-        protected val tCls: KClass<T>
-)  {
+    val key: DependencyKey,
+    protected val default: F?,
+    protected val tCls: KClass<T>
+) {
     protected inline fun invoke0(argsAsArray: () -> Array<out Any?>, invokeDefault: (F) -> T): T {
         val resolver: DependencyResolver = try {
             DI.getResolver(key)
@@ -99,9 +99,9 @@ abstract class BaseDependencyBinding<T : Any, F : Function<T>>(
 private fun <T : Any?> castArg(arg: Any?, clz: KClass<*>) = arg?.let { clz.cast(it) } as T
 
 class VarargDependencyBinding<T : Any>(
-        key: DependencyKey,
-        default: ((args: Any?) -> T)?,
-        tCls: KClass<T>
+    key: DependencyKey,
+    default: ((args: Any?) -> T)?,
+    tCls: KClass<T>
 ) : BaseDependencyBinding<T, (args: Any?) -> T>(key, default, tCls) {
     fun invoke(vararg args: Any?): T = invoke0({ args }) { it(args) }
 
@@ -109,9 +109,9 @@ class VarargDependencyBinding<T : Any>(
 }
 
 class DependencyBinding0<T : Any>(
-        key: DependencyKey,
-        default: (() -> T)?,
-        tCls: KClass<T>
+    key: DependencyKey,
+    default: (() -> T)?,
+    tCls: KClass<T>
 ) : BaseDependencyBinding<T, () -> T>(key, default, tCls) {
     operator fun invoke(): T = invoke0(::emptyArray) { it() }
 
@@ -139,20 +139,20 @@ class DependencyBinding0<T : Any>(
  * @see BaseDependencyBinding
  */
 inline fun <reified T : Any> bindDependency(
-        key: DependencyKey,
-        noinline default: (() -> T)? = null
+    key: DependencyKey,
+    noinline default: (() -> T)? = null
 ) = DependencyBinding0(key, default, T::class)
 
 class DependencyBinding1<T : Any, A0 : Any?>(
-        key: DependencyKey,
-        default: ((A0) -> T)?,
-        tCls: KClass<T>,
-        private val a0Cls: KClass<*>
+    key: DependencyKey,
+    default: ((A0) -> T)?,
+    tCls: KClass<T>,
+    private val a0Cls: KClass<*>
 ) : BaseDependencyBinding<T, (A0) -> T>(key, default, tCls) {
     operator fun invoke(arg0: A0): T = invoke0({ arrayOf<Any?>(arg0) }) { it(arg0) }
 
     override fun fToResolver(f: (arg0: A0) -> T): DependencyResolver =
-            { args -> f(castArg(args[0], a0Cls)) }
+        { args -> f(castArg(args[0], a0Cls)) }
 
     /**
      * Hopefully, this might be useful for some tricks like
@@ -170,51 +170,51 @@ class DependencyBinding1<T : Any, A0 : Any?>(
  * @see BaseDependencyBinding
  */
 inline fun <reified T : Any, reified A0 : Any?> bindDependency(
-        key: DependencyKey,
-        noinline default: ((arg0: A0) -> T)? = null
+    key: DependencyKey,
+    noinline default: ((arg0: A0) -> T)? = null
 ) = DependencyBinding1(key, default, T::class, A0::class)
 
 class DependencyBinding2<T : Any, A0 : Any?, A1 : Any?>(
-        key: DependencyKey,
-        default: ((A0, A1) -> T)?,
-        tCls: KClass<T>,
-        private val a0Cls: KClass<*>,
-        private val a1Cls: KClass<*>
+    key: DependencyKey,
+    default: ((A0, A1) -> T)?,
+    tCls: KClass<T>,
+    private val a0Cls: KClass<*>,
+    private val a1Cls: KClass<*>
 ) : BaseDependencyBinding<T, (A0, A1) -> T>(key, default, tCls) {
     operator fun invoke(arg0: A0, arg1: A1): T = invoke0({ arrayOf<Any?>(arg0, arg1) }) { it(arg0, arg1) }
 
     override fun fToResolver(f: (arg0: A0, arg1: A1) -> T): DependencyResolver =
-            { args -> f(castArg(args[0], a0Cls), castArg(args[1], a1Cls)) }
+        { args -> f(castArg(args[0], a0Cls), castArg(args[1], a1Cls)) }
 }
 
 /**
  * @see BaseDependencyBinding
  */
 inline fun <reified T : Any, reified A0 : Any?, reified A1 : Any?> bindDependency(
-        key: DependencyKey,
-        noinline default: ((arg0: A0, arg1: A1) -> T)? = null
+    key: DependencyKey,
+    noinline default: ((arg0: A0, arg1: A1) -> T)? = null
 ) = DependencyBinding2(key, default, T::class, A0::class, A1::class)
 
 class DependencyBinding3<T : Any, A0 : Any?, A1 : Any?, A2 : Any?>(
-        key: DependencyKey,
-        default: ((A0, A1, A2) -> T)?,
-        tCls: KClass<T>,
-        private val a0Cls: KClass<*>,
-        private val a1Cls: KClass<*>,
-        private val a2Cls: KClass<*>
+    key: DependencyKey,
+    default: ((A0, A1, A2) -> T)?,
+    tCls: KClass<T>,
+    private val a0Cls: KClass<*>,
+    private val a1Cls: KClass<*>,
+    private val a2Cls: KClass<*>
 ) : BaseDependencyBinding<T, (A0, A1, A2) -> T>(key, default, tCls) {
     operator fun invoke(arg0: A0, arg1: A1, arg2: A2): T = invoke0({ arrayOf<Any?>(arg0, arg1, arg2) }) {
         it(arg0, arg1, arg2)
     }
 
     override fun fToResolver(f: (arg0: A0, arg1: A1, arg2: A2) -> T): DependencyResolver =
-            { args -> f(castArg(args[0], a0Cls), castArg(args[1], a1Cls), castArg(args[2], a2Cls)) }
+        { args -> f(castArg(args[0], a0Cls), castArg(args[1], a1Cls), castArg(args[2], a2Cls)) }
 }
 
 /**
  * @see BaseDependencyBinding
  */
 inline fun <reified T : Any, reified A0 : Any?, reified A1 : Any?, reified A2 : Any?> bindDependency(
-        key: DependencyKey,
-        noinline default: ((arg0: A0, arg1: A1, arg2: A2) -> T)? = null
+    key: DependencyKey,
+    noinline default: ((arg0: A0, arg1: A1, arg2: A2) -> T)? = null
 ) = DependencyBinding3(key, default, T::class, A0::class, A1::class, A2::class)

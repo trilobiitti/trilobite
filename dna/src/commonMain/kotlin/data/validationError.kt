@@ -82,8 +82,8 @@ abstract class ValidationError : Exception() {
  * TODO: Current structure is ambiguous: errors may be listed as field errors or as topLevelErrors of CompositeValidationError for the field
  */
 class CompositeValidationError(
-        private val errors: Map<Any, List<ValidationError>>,
-        private val topLevelErrors: List<ValidationError>
+    private val errors: Map<Any, List<ValidationError>>,
+    private val topLevelErrors: List<ValidationError>
 ) : ValidationError() {
     override fun format(dst: Appendable, path: String) {
         for (error in topLevelErrors)
@@ -98,12 +98,12 @@ class CompositeValidationError(
 }
 
 class SimpleValidationError(
-        private val msg: String
+    private val msg: String
 ) : ValidationError() {
     override fun format(dst: Appendable, path: String) {
         dst
-                .append(path)
-                .append(msg.replace("\n", " ".repeat(path.length)))
-                .append('\n')
+            .append(path)
+            .append(msg.replace("\n", " ".repeat(path.length)))
+            .append('\n')
     }
 }

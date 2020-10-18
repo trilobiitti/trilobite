@@ -5,18 +5,20 @@ import kotlin.test.assertEquals
 
 class PathExpressionTest {
     fun e(src: String, exact: Boolean = true): PathExpression<String> =
-            PathExpression(IdentityVariable(), src, exact = exact)
+        PathExpression(IdentityVariable(), src, exact = exact)
 
     fun d(vararg rules: Pair<PathExpression<String>, String>): Decider<String, String> =
-            DefaultDeciderBuilder<String, String>()
-                    .apply {
-                        rules.forEach { (expr, item) ->
-                            addRule(expr.conditions, item)
-                        }
-                    }
-                    .build<String, String>(ContextIndependentImmutableDecisionFactory {
-                        it.sorted().joinToString(", ")
-                    })
+        DefaultDeciderBuilder<String, String>()
+            .apply {
+                rules.forEach { (expr, item) ->
+                    addRule(expr.conditions, item)
+                }
+            }
+            .build<String, String>(
+                ContextIndependentImmutableDecisionFactory {
+                    it.sorted().joinToString(", ")
+                }
+            )
 
     @Test
     fun shouldProduceCorrectConditionsForNonParametrizedPaths() {

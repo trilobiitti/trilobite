@@ -3,8 +3,8 @@ package com.github.trilobiitti.trilobite.dna.data
 import kotlin.reflect.KClass
 
 class SchemaFieldImpl<T>(
-        override val type: DataType<T>,
-        override val key: DocumentFieldKey
+    override val type: DataType<T>,
+    override val key: DocumentFieldKey
 ) : SchemaField<T> {
     override fun read(document: ReadableDocument): T = type.cast(document[key])
 
@@ -16,7 +16,7 @@ class SchemaFieldImpl<T>(
 private val DOCUMENT_TYPE = ClassType(Document::class)
 
 class SchemaImpl(
-        fields: Iterable<SchemaField<*>>
+    fields: Iterable<SchemaField<*>>
 ) : Schema {
     override val fields: Map<DocumentFieldKey, SchemaField<*>> = fields.map { it.key to it }.toMap()
     override val baseType get() = DOCUMENT_TYPE

@@ -5,7 +5,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.cast
 
 data class ClassType<T : Any>(
-        private val clz: KClass<T>
+    private val clz: KClass<T>
 ) : DataType<T> {
     override fun isInstance(value: Any?): Boolean = clz.isInstance(value)
 
@@ -32,9 +32,9 @@ data class ClassType<T : Any>(
 }
 
 data class CollectionType<T, C : Collection<T>>(
-        private val itemType: DataType<T>,
-        private val collectionType: KClass<out Collection<*>>,
-        private val fromList: (List<T>) -> C
+    private val itemType: DataType<T>,
+    private val collectionType: KClass<out Collection<*>>,
+    private val fromList: (List<T>) -> C
 ) : DataType<C> {
     override val baseType: DataType<C> = if (itemType == itemType.baseType)
         this
@@ -80,7 +80,7 @@ data class CollectionType<T, C : Collection<T>>(
 }
 
 data class NullableType<T>(
-        private val dataType: DataType<T>
+    private val dataType: DataType<T>
 ) : DataType<T?> {
     override fun isInstance(value: Any?): Boolean = value === null || dataType.isInstance(value)
 
@@ -100,8 +100,8 @@ data class NullableType<T>(
 }
 
 data class EnumType<T>(
-        private val enumValues: Set<T>,
-        private val valueType: DataType<T>
+    private val enumValues: Set<T>,
+    private val valueType: DataType<T>
 ) : DataType<T> {
     override val baseType: DataType<T>
         get() = valueType.baseType
@@ -109,7 +109,7 @@ data class EnumType<T>(
     private fun validate0(value: T) {
         if (value !in enumValues)
             throw SimpleValidationError(
-                    "Value must be one of: ${enumValues.joinToString(", ")}, but not $value"
+                "Value must be one of: ${enumValues.joinToString(", ")}, but not $value"
             )
     }
 
@@ -128,8 +128,8 @@ data class EnumType<T>(
 }
 
 data class UnionType<T>(
-        private val types: List<DataType<out T>>,
-        override val baseType: DataType<T>
+    private val types: List<DataType<out T>>,
+    override val baseType: DataType<T>
 ) : DataType<T> {
     override val runtimeClass: KClass<*>
         get() = baseType.runtimeClass

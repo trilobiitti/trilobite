@@ -13,30 +13,32 @@ class DeciderConditionsBuilder<TIn : DeciderInputBase> {
 }
 
 fun <TIn : DeciderInputBase, TVar : DeciderVariableValueBase>
-        DeciderConditionsBuilder<TIn>.expect(
-        variable: DecisionVariable<TIn, TVar>,
-        value: TVar
+DeciderConditionsBuilder<TIn>.expect(
+    variable: DecisionVariable<TIn, TVar>,
+    value: TVar
 ) {
     conditions.add(DecisionCondition(variable, value))
 }
 
 fun <TIn : DeciderInputBase, TVar : DeciderVariableValueBase>
-        DeciderConditionsBuilder<TIn>.expect(
-        variable: DecisionVariable<TIn, TVar>,
-        negate: Boolean = false,
-        predicate: (TVar) -> Boolean
+DeciderConditionsBuilder<TIn>.expect(
+    variable: DecisionVariable<TIn, TVar>,
+    negate: Boolean = false,
+    predicate: (TVar) -> Boolean
 ) {
-    conditions.add(DecisionCondition(
+    conditions.add(
+        DecisionCondition(
             PredicateVariable(variable, predicate),
             !negate
-    ))
+        )
+    )
 }
 
 fun <TIn : DeciderInputBase, TItem : DeciderItemBase>
-        DeciderBuilder<TIn, TItem>.add(item: TItem, block: DeciderConditionsBuilder<TIn>.() -> Unit) {
+DeciderBuilder<TIn, TItem>.add(item: TItem, block: DeciderConditionsBuilder<TIn>.() -> Unit) {
     addRule(
-            DeciderConditionsBuilder<TIn>().also(block).conditions,
-            item
+        DeciderConditionsBuilder<TIn>().also(block).conditions,
+        item
     )
 }
 
@@ -45,8 +47,8 @@ fun <TIn : DeciderInputBase, TItem : DeciderItemBase>
 //
 
 data class PredicateVariable<TIn : DeciderInputBase, TVar : DeciderVariableValueBase>(
-        val variable: DecisionVariable<TIn, TVar>,
-        val predicate: (TVar) -> Boolean
+    val variable: DecisionVariable<TIn, TVar>,
+    val predicate: (TVar) -> Boolean
 ) : DecisionVariable<TIn, Boolean> {
     override fun getFrom(context: DecisionContext<TIn>): Boolean = predicate(context[variable])
 
@@ -56,8 +58,8 @@ data class PredicateVariable<TIn : DeciderInputBase, TVar : DeciderVariableValue
 }
 
 data class RegexpMatchVariable<TIn : DeciderInputBase>(
-        private val variable: DecisionVariable<TIn, String>,
-        private val pattern: String
+    private val variable: DecisionVariable<TIn, String>,
+    private val pattern: String
 ) : DecisionVariable<TIn, Boolean> {
     // Regex doesn't support equality check (Regex(".*") != Regex(".*")) so only regex's pattern is kept
     // as constructor parameter (and thus is used for generated hash/comparison methods)
@@ -73,7 +75,7 @@ data class RegexpMatchVariable<TIn : DeciderInputBase>(
 }
 
 data class CollectionSizeVariable<TIn : DeciderInputBase>(
-        private val variable: DecisionVariable<TIn, Collection<*>>
+    private val variable: DecisionVariable<TIn, Collection<*>>
 ) : DecisionVariable<TIn, Int> {
     override fun getFrom(context: DecisionContext<TIn>): Int = context[variable].size
     override fun getDependencies(): List<DecisionVariable<TIn, *>> = listOf(variable)
@@ -89,7 +91,7 @@ class IdentityVariable<TIn : DeciderInputBase> /*where TIn: DeciderVariableValue
 }
 
 class ContextIndependentImmutableDecisionFactory<TIn : DeciderInputBase, TItem : DeciderItemBase, TOut>(
-        private val transform: (items: Iterable<TItem>) -> TOut
+    private val transform: (items: Iterable<TItem>) -> TOut
 ) : DecisionFactory<TIn, TItem, TOut, TOut> {
     override fun initDecisionInvariant(items: Iterable<TItem>): TOut = transform(items)
 
@@ -97,10 +99,10 @@ class ContextIndependentImmutableDecisionFactory<TIn : DeciderInputBase, TItem :
 }
 
 class FullyContextDependentDecisionFactory<TIn : DeciderInputBase, TItem : DeciderItemBase, TOut>(
-        private val create: (items: Iterable<TItem>, context: DecisionContext<TIn>) -> TOut
+    private val create: (items: Iterable<TItem>, context: DecisionContext<TIn>) -> TOut
 ) : DecisionFactory<TIn, TItem, Iterable<TItem>, TOut> {
     override fun initDecisionInvariant(items: Iterable<TItem>): Iterable<TItem> = items
 
     override fun generateOutput(decisionInvariant: Iterable<TItem>, context: DecisionContext<TIn>): TOut =
-            create(decisionInvariant, context)
+        create(decisionInvariant, context)
 }

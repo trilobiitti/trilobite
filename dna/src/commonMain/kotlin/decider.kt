@@ -75,15 +75,15 @@ interface DecisionContext<out TIn : DeciderInputBase> {
  * @param TVar value type of the [variable]
  */
 class DecisionCondition<TIn : DeciderInputBase, TVar : DeciderVariableValueBase>(
-        /**
-         * Variable that is being constrained.
-         */
-        val variable: DecisionVariable<TIn, TVar>,
+    /**
+     * Variable that is being constrained.
+     */
+    val variable: DecisionVariable<TIn, TVar>,
 
-        /**
-         * Value this variable should have for this constraint to be satisfied.
-         */
-        val value: TVar
+    /**
+     * Value this variable should have for this constraint to be satisfied.
+     */
+    val value: TVar
 )
 
 /**
@@ -157,5 +157,5 @@ interface DeciderBuilder<TIn : DeciderInputBase, TItem : DeciderItemBase> {
  * results.
  */
 interface Decider<TIn : DeciderInputBase, TOut> {
-    operator fun invoke(input :TIn): TOut
+    operator fun invoke(input: TIn): TOut
 }
