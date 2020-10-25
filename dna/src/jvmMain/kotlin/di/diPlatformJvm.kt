@@ -1,6 +1,6 @@
 package com.github.trilobiitti.trilobite.dna.di
 
-private val currentDIInstance: ThreadLocal<DI> = ThreadLocal.withInitial { NullDIContainer }
+private val currentDIInstance: ThreadLocal<DI> = ThreadLocal.withInitial { UninitializedDIContainer }
 
 actual fun getCurrentDIInstance(): DI = currentDIInstance.get()
 

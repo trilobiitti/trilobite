@@ -1,6 +1,6 @@
 package com.github.trilobiitti.trilobite.dna.di
 
-private var currentDIInstance: DI = NullDIContainer
+private var currentDIInstance: DI = UninitializedDIContainer
 
 actual fun getCurrentDIInstance(): DI = currentDIInstance
 

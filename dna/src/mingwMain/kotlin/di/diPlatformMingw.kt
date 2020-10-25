@@ -1,7 +1,7 @@
 package com.github.trilobiitti.trilobite.dna.di
 
 @kotlin.native.ThreadLocal
-private var currentDIInstance: DI = NullDIContainer
+private var currentDIInstance: DI = UninitializedDIContainer
 
 actual fun getCurrentDIInstance(): DI = currentDIInstance
 
