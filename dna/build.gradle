@@ -97,3 +97,7 @@ kotlin {
         }
     }
 }
+
+task prepareKotlinBuildScriptModel {
+    // https://stackoverflow.com/questions/64290545/task-preparekotlinbuildscriptmodel-not-found-in-project-app
+}
