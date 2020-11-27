@@ -1,6 +1,6 @@
 package com.github.trilobiitti.trilobite.dna.data
 
-import kotlin.reflect.KProperty
+import com.github.trilobiitti.trilobite.dna.hacks.KotlinPropertyMeta
 
 abstract class DocumentAdapter {
     private lateinit var document: Document
@@ -9,16 +9,14 @@ abstract class DocumentAdapter {
         this.document = document
     }
 
-    operator fun <T> getValue(thisRef: DocumentAdapter?, property: KProperty<*>): T {
-        println("a.gv ${property::class.simpleName} ${property is KProperty}")
-
-        val reader = DocumentAdapters.fieldReader(property, document) as FieldReader<T>
+    operator fun <T> getValue(thisRef: DocumentAdapter?, property: Any): T {
+        val reader = DocumentAdapters.fieldReader(KotlinPropertyMeta(property), document) as FieldReader<T>
 
         return reader.read(document)
     }
 
-    operator fun <T> setValue(thisRef: DocumentAdapter?, property: KProperty<*>, value: T) {
-        val writer = DocumentAdapters.fieldWriter(property, document) as FieldWriter<T>
+    operator fun <T> setValue(thisRef: DocumentAdapter?, property: Any, value: T) {
+        val writer = DocumentAdapters.fieldWriter(KotlinPropertyMeta(property), document) as FieldWriter<T>
 
         return writer.write(document, value)
     }
