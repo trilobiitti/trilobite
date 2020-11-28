@@ -9,15 +9,21 @@ abstract class DocumentAdapter {
         this.document = document
     }
 
-    operator fun <T> getValue(thisRef: DocumentAdapter?, property: Any): T {
-        val reader = DocumentAdapters.fieldReader(KotlinPropertyMeta(property), document) as FieldReader<T>
+    operator fun <T> getValue(thisRef: DocumentAdapter?, property: Any): T = getValue(document, property)
 
-        return reader.read(document)
-    }
+    operator fun <T> setValue(thisRef: DocumentAdapter?, property: Any, value: T) = setValue(document, property, value)
 
-    operator fun <T> setValue(thisRef: DocumentAdapter?, property: Any, value: T) {
-        val writer = DocumentAdapters.fieldWriter(KotlinPropertyMeta(property), document) as FieldWriter<T>
+    companion object {
+        operator fun <T> getValue(self: ReadableDocument, property: Any): T {
+            val reader = DocumentAdapters.fieldReader(KotlinPropertyMeta(property), self) as FieldReader<T>
 
-        return writer.write(document, value)
+            return reader.read(self)
+        }
+
+        operator fun <T> setValue(self: Document, property: Any, value: T) {
+            val writer = DocumentAdapters.fieldWriter(KotlinPropertyMeta(property), self) as FieldWriter<T>
+
+            return writer.write(self, value)
+        }
     }
 }

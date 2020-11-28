@@ -10,6 +10,10 @@ class TestAdapter : DocumentAdapter() {
     var bar: String by this
 }
 
+val ReadableDocument.foo: Int by DocumentAdapter
+
+var Document.bar: String by DocumentAdapter
+
 class DocumentAdapterTest : DIAwareTest {
     override fun initDependencies() {
         DocumentAdapters.fieldAccessor.use { prop, _ ->
@@ -53,6 +57,41 @@ class DocumentAdapterTest : DIAwareTest {
         assertEquals(
             doc[DocumentFieldKey("field_bar")],
             a.bar
+        )
+    }
+
+    @Test
+    fun shouldExternalAdapterReadField() {
+        val doc = MapDocument(
+            mutableMapOf(
+                DocumentFieldKey("field_foo") to 42,
+                DocumentFieldKey("foo") to 41
+            )
+        )
+
+        assertEquals(42, doc.foo)
+    }
+
+    @Test
+    fun shouldExternalAdapterReadAndWriteField() {
+        val doc = MapDocument(
+            mutableMapOf(
+                DocumentFieldKey("field_bar") to "42",
+                DocumentFieldKey("bar") to "41"
+            )
+        )
+
+        assertEquals("42", doc.bar)
+
+        doc.bar = "and what is the question?"
+
+        assertEquals(
+            "and what is the question?",
+            doc[DocumentFieldKey("field_bar")]
+        )
+        assertEquals(
+            doc[DocumentFieldKey("field_bar")],
+            doc.bar
         )
     }
 }
