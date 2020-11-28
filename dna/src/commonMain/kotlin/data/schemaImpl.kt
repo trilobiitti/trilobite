@@ -4,8 +4,8 @@ import kotlin.reflect.KClass
 
 class SchemaFieldImpl<T>(
     override val type: DataType<T>,
-    override val key: DocumentFieldKey
-) : SchemaField<T> {
+    key: DocumentFieldKey
+) : KeyFieldAccessor<T>(key), SchemaField<T> {
     override fun read(document: ReadableDocument): T = type.cast(document[key])
 
     override fun write(document: Document, value: T) {

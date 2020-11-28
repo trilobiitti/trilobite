@@ -17,3 +17,16 @@ class MapDocument(private val map: MutableMap<DocumentFieldKey, Any> = mutableMa
             map[key] = value
     }
 }
+
+/**
+ * Simple implementation of [FieldAccessor] that just accesses a field of a document by a given key.
+ */
+open class KeyFieldAccessor<T>(
+    val key: DocumentFieldKey
+) : FieldAccessor<T> {
+    override fun read(document: ReadableDocument): T = document[key] as T
+
+    override fun write(document: Document, value: T) {
+        document[key] = value
+    }
+}

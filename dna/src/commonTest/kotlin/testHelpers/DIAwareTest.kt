@@ -7,7 +7,10 @@ import kotlin.test.BeforeTest
 interface DIAwareTest {
     @BeforeTest
     fun initDI() {
-        // TODO: This ain't gonna work for tests running concurrently, so implementation should be changed for platforms supporting concurrency
         DI.instance = PlainDIContainer()
+
+        initDependencies()
     }
+
+    fun initDependencies() {}
 }
