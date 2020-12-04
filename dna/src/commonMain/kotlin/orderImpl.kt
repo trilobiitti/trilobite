@@ -20,7 +20,7 @@ data class PreKey(val key: DefaultKey) : DefaultKey() {
     }
 }
 
-class DefaultOrder<TValue> : Order<DefaultKey, TValue> {
+class DefaultOrder<TValue> : OrderBuilder<DefaultKey, TValue>, Order<DefaultKey, TValue> {
     companion object {
         private val PRE_KEY_RE = Regex("^pre[-: ]?(.+)$", RegexOption.IGNORE_CASE)
         private val POST_KEY_RE = Regex("^post[-: ]?(.+)$", RegexOption.IGNORE_CASE)

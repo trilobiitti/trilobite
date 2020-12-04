@@ -15,13 +15,9 @@ interface OrderLinkToken<TKey> : OrderRegistrationToken {
 }
 
 /**
- * Order defines order in which items of type [TValue] are ordered according to information about dependencies between
- * those items.
- *
- * Each item ordered by the Order is associated with a key of type [TKey]. Order of items associated with the same key
- * is not defined.
+ * Builder for [Order].
  */
-interface Order<TKey, TValue> {
+interface OrderBuilder<TKey, TValue> {
     /**
      * Creates a key from given object.
      *
@@ -62,7 +58,16 @@ interface Order<TKey, TValue> {
      * @throws IllegalStateException if this order contains loops
      */
     fun validate()
+}
 
+/**
+ * Order defines order in which items of type [TValue] are ordered according to information about dependencies between
+ * those items.
+ *
+ * Each item ordered by the Order is associated with a key of type [TKey]. Order of items associated with the same key
+ * is not defined.
+ */
+interface Order<TKey, TValue> {
     /**
      * Executes passed callback for each key registered in this order.
      *
@@ -78,7 +83,7 @@ interface Order<TKey, TValue> {
      *
      * @throws IllegalStateException if this order contains loops
      */
-    fun <T> visit(cb: (TKey, Iterable<TValue>, Iterable<T>) -> T): Iterable<T>
+    fun <T> visit(cb: (key: TKey, items: Iterable<TValue>, prevResults: Iterable<T>) -> T): Iterable<T>
 
     /**
      * Returns items ordered by this order.
