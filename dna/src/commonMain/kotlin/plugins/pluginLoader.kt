@@ -1,16 +1,39 @@
 package com.github.trilobiitti.trilobite.dna.plugins
 
 import com.github.trilobiitti.trilobite.dna.DefaultOrder
+import com.github.trilobiitti.trilobite.dna.operations.ConcurrentOperationPlanExecutor
+import com.github.trilobiitti.trilobite.dna.operations.OperationPlanExecutor
+import com.github.trilobiitti.trilobite.dna.operations.SequentialOperationPlanExecutor
+import com.github.trilobiitti.trilobite.dna.operations.StageExecutor
+import kotlin.coroutines.CoroutineContext
+
+val initializationStageExecutor: StageExecutor<InitializationStage, Unit> = {
+    stage: InitializationStage, _: Unit ->
+    stage()
+}
+
+val sequentialPluginLoadExecutor = SequentialOperationPlanExecutor(initializationStageExecutor)
+
+class ConcurrentPluginLoadExecutor(
+    coroutineContext: CoroutineContext
+) : OperationPlanExecutor<Unit, InitializationStage> by ConcurrentOperationPlanExecutor(
+        initializationStageExecutor,
+        { _, _ -> },
+        coroutineContext
+    )
 
 /**
- * Loads plugins sequentially invoking [InitializationStage]s.
+ * Loads plugins using provided [OperationPlanExecutor].
  */
-suspend fun loadPluginsSequentially(plugins: Iterable<Plugin>) {
+suspend fun loadPlugins(
+    plugins: Iterable<Plugin>,
+    executor: OperationPlanExecutor<Unit, InitializationStage> = sequentialPluginLoadExecutor
+) {
     val initializationOrder = DefaultOrder<InitializationStage>()
 
     for (plugin in plugins) plugin.apply(initializationOrder)
 
-    for (stage in initializationOrder.toLinearList()) stage()
+    executor.executeCase(initializationOrder, Unit)
 }
 
 /**
@@ -18,7 +41,7 @@ suspend fun loadPluginsSequentially(plugins: Iterable<Plugin>) {
  * aren't configured properly.
  *
  * This function is intended mostly for development/debug.
- * If an application cannot launch with standard plugin loader (like [loadPluginsSequentially]) because of issues with
+ * If an application cannot launch with standard plugin loader (like [loadPlugins]) because of issues with
  * initialization stage dependencies it should not be considered as ready for production use.
  *
  * `loadPluginsRestoringActionSequence` tries to provide as much information as possible about possible misconfigurations:
