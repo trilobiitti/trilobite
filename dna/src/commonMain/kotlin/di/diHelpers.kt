@@ -93,6 +93,10 @@ abstract class BaseDependencyBinding<T : Any, F : Function<T>>(
     fun use(f: F) {
         DI.register(key, fToResolver(f))
     }
+
+    fun useDefault() {
+        use(default ?: throw IllegalStateException("There is no default resolver for $key"))
+    }
 }
 
 @OptIn(ExperimentalStdlibApi::class)

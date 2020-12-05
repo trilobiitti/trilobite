@@ -49,7 +49,7 @@ class DefaultOrder<TValue> : OrderBuilder<DefaultKey, TValue>, Order<DefaultKey,
     private class LoopException : IllegalStateException() {
         val keys = mutableListOf<Any>()
 
-        override val message: String?
+        override val message: String
             get() = "Found a loop containing: ${keys.joinToString(", ") { "\"$it\"" }}"
     }
 
