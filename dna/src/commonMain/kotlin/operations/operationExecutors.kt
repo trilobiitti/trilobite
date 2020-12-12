@@ -20,6 +20,20 @@ class SequentialOperationPlanExecutor<TCtx : Any, TStage>(
     }
 }
 
+class SynchronousSequentialOperationPlanExecutor<TCtx : Any, TStage>(
+    private val stageExecutor: SynchronousStageExecutor<TStage, TCtx>
+) : OperationPlanExecutor<TCtx, TStage> {
+    override suspend fun executeCase(stages: Order<*, TStage>, context: TCtx): TCtx {
+        var currentContext = context
+
+        for (stage in stages.toLinearList()) {
+            currentContext = stageExecutor(stage, context)
+        }
+
+        return currentContext
+    }
+}
+
 class ConcurrentOperationPlanExecutor<TCtx : Any, TStage>(
     private val stageExecutor: StageExecutor<TStage, TCtx>,
     private val contextReducer: ContextReducer<TCtx>,

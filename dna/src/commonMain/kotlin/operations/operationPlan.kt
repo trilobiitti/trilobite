@@ -33,4 +33,6 @@ interface OperationPlanExecutor<TCtx : Any, TStage> {
 
 typealias StageExecutor<TStage, TCtx> = suspend (stage: TStage, context: TCtx) -> TCtx
 
+typealias SynchronousStageExecutor<TStage, TCtx> = (stage: TStage, context: TCtx) -> TCtx
+
 typealias ContextReducer<TCtx> = (ctx1: TCtx, ctx2: TCtx) -> TCtx
