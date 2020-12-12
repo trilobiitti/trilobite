@@ -5,10 +5,20 @@ import com.github.trilobiitti.trilobite.dna.data.DocumentFieldKey
 import com.github.trilobiitti.trilobite.dna.data.DocumentVisitor
 import com.github.trilobiitti.trilobite.dna.data.Documents
 
-private const val TRUE_STR = "true"
-private const val FALSE_STR = "false"
-private const val NULL_STR = "null"
-
+/**
+ * Deserializes JSON documents represented as a [String] into tree of objects ensuring that as many as possible of them
+ * are parsed and allocated lazily, when requested.
+ *
+ * Laziness is extremely important in life of trilobites.
+ * Did you see any trilobite alive?
+ * Yep. That's because most of them were too lazy to survive.
+ *
+ * For sake of microoptimization some methods are implemented as subclass methods instead of being delegated to a
+ * strategy-object.
+ * TODO: Rethink this decision
+ *
+ * TODO: Distribute this deserializer as a separate library to enhance fame of The Trilobite among those poor humans unfamiliar with It.
+ */
 abstract class LazyJsonDeserializer<
     TObject : Any,
     TArray : Any,
@@ -358,6 +368,10 @@ abstract class LazyJsonDeserializer<
     fun parse(string: String): Any? = parseValueLazy(string, skipWhitespace(string, 0)).second
 }
 
+private const val TRUE_STR = "true"
+private const val FALSE_STR = "false"
+private const val NULL_STR = "null"
+
 // // WTF-KOTLIN-JS: Fails with `TypeError: Cannot read property 'prototype' of undefined` from `kotlin.Number`
 // // https://youtrack.jetbrains.com/issue/KT-17345
 // class LazyNumber(
@@ -374,6 +388,11 @@ abstract class LazyJsonDeserializer<
 //    override fun toString(): String = source
 // }
 
+/**
+ * Deserializes JSON string into tree of immutable standard objects.
+ *
+ * Arrays are deserialized as [List]s, objects are deserialized as [Map]s.
+ */
 open class ImmutablePrimitiveLazyJsonDeserializer : LazyJsonDeserializer<
     Map<String, Any?>,
     List<Any?>,
@@ -399,6 +418,8 @@ open class ImmutablePrimitiveLazyJsonDeserializer : LazyJsonDeserializer<
 
             return@lazy m
         }
+
+        // WTF-KOTLIN: Cannot delegate interface implementation to property
         override val entries: Set<Map.Entry<String, Any?>>
             get() = lm.entries
         override val keys: Set<String>
@@ -467,6 +488,9 @@ open class ImmutablePrimitiveLazyJsonDeserializer : LazyJsonDeserializer<
     )
 }
 
+/**
+ * Deserialized JSON string into tree of [Document]s, [MutableList]s and values.
+ */
 open class LazyDocumentDeserializer : LazyJsonDeserializer<
     Document,
     MutableList<Any?>,
