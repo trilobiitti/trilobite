@@ -575,6 +575,11 @@ open class LazyDocumentDeserializer : LazyJsonDeserializer<
         override fun retainAll(elements: Collection<Any?>): Boolean = ll.retainAll(elements)
         override fun set(index: Int, element: Any?): Any? = ll.set(index, element)
         override fun subList(fromIndex: Int, toIndex: Int): MutableList<Any?> = ll.subList(fromIndex, toIndex)
+
+        override fun equals(other: Any?): Boolean = ll == other
+        override fun hashCode(): Int = ll.hashCode()
+
+        override fun toString(): String = "LazyMutableList($ll)"
     }
 
     override fun lazyArray(string: String, spanStart: Int, spanEnd: Int): MutableList<Any?> = LazyMutableList(
