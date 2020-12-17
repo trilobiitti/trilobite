@@ -69,6 +69,19 @@ inline fun <TKey, TValue> SequenceBuilder<TKey, TValue>.seq(block: SequenceBuild
     )
 }
 
+/**
+ * Describes a set of items that should be ordered in sequence, but independently from other items added in the builder.
+ *
+ * Items in `independently` block don't depend (unless dependency is explicitly declared inside the block) on items before the block.
+ * Items after the block don't (unless dependencies are explicitly declared) depend on items in the block.
+ * Blocks outside of `independently` block behave the same way as if `independently` block doesn't exist.
+ *
+ * @see [SequenceBuilder]
+ */
+inline fun <TKey, TValue> SequenceBuilder<TKey, TValue>.independently(block: SequenceBuilder<TKey, TValue>.() -> Unit) {
+    SequentialSequenceBuilder(orderBuilder, emptyList()).also(block)
+}
+
 class ParallelSequenceBuilder<TKey, TValue>(
     override val orderBuilder: OrderBuilder<TKey, TValue>,
     private val prevDeps: Iterable<TKey>

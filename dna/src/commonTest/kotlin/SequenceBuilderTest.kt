@@ -51,4 +51,22 @@ class SequenceBuilderTest {
             }
         )
     }
+
+    @Test
+    fun shouldHandleIndependentSubsequences() {
+        assertEquals(
+            listOf("foo", "bar", "baz"),
+            test {
+                add("kbar", "bar")
+
+                independently {
+                    add("foo")
+
+                    expect("kbar")
+                }
+
+                add("baz")
+            }
+        )
+    }
 }
