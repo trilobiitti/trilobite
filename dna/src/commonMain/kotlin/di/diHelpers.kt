@@ -90,10 +90,39 @@ abstract class BaseDependencyBinding<T : Any, F : Function<T>>(
 
     protected abstract fun fToResolver(f: F): DependencyResolver
 
-    fun use(f: F) {
-        DI.register(key, fToResolver(f))
+    /**
+     * Registers given resolver to resolve dependency provided by this binding.
+     */
+    fun useRaw(resolver: DependencyResolver) {
+        DI.register(key, resolver)
     }
 
+    /**
+     * Converts given function to proper [DependencyResolver] and registers it as resolver for dependency provided by
+     * this binding.
+     */
+    fun use(f: F) {
+        useRaw(fToResolver(f))
+    }
+
+    /**
+     * Returns resolver used to resolve the dependency provided by this binding in current context.
+     * The returned value can be either a default resolver or a resolver registered in current instance of DI container.
+     *
+     * Returns `null` if there is no registered resolver in DI container and no default resolver for this binding.
+     */
+    fun getCurrentResolver(): DependencyResolver? = try {
+        DI.getResolver(key)
+    } catch (e: UnknownDependencyException) {
+        this.default?.let { fToResolver(it) }
+    }
+
+    /**
+     * Registers default resolver of this binding as resolver for dependency provided by this binding in current
+     * instance of DI container.
+     *
+     * @throws IllegalStateException when there is no default resolver for this binding
+     */
     fun useDefault() {
         use(default ?: throw IllegalStateException("There is no default resolver for $key"))
     }

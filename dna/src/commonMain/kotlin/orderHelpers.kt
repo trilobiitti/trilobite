@@ -41,7 +41,7 @@ interface SequenceBuilder<TKey, TValue> {
 
 class SequentialSequenceBuilder<TKey, TValue>(
     override val orderBuilder: OrderBuilder<TKey, TValue>,
-    prevDeps: Iterable<TKey>
+    prevDeps: Iterable<TKey> = emptyList()
 ) : SequenceBuilder<TKey, TValue> {
     private var curDeps = prevDeps
 
